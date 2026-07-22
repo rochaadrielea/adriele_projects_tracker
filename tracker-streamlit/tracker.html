@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contribution &amp; Impact Tracker — Adriele</title>
+<style id="mainStyle">
+  :root{
+    --plane:#f4f5f3; --surface:#ffffff; --surface-2:#f7f7f4;
+    --ink:#161615; --ink-2:#45443f; --muted:#63625c;
+    --grid:#e7e6e0; --border:#e4e3dc; --border-strong:#cfcec4;
+    --quality:#2a78d6; --logistics:#1baf7a; --procurement:#e08a00; --production:#5a45c9;
+    --h0:#f2f3f1; --h1:#d5e6fb; --h2:#9ec5f4; --h3:#5598e7; --h4:#2a78d6;
+    --st-idea:#a6a49c; --st-progress:#e0a200; --st-delivered:#2a78d6; --st-live:#0ca30c;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--plane);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1220px;margin:0 auto;padding:26px 22px 90px;}
+
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px;}
+  .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px;}
+  h1{font-size:30px;line-height:1.12;margin:0;font-weight:800;letter-spacing:-.015em;}
+  h1 .accent{color:var(--quality);}
+  .sub{color:var(--ink-2);font-size:14.5px;margin-top:9px;max-width:600px;}
+  .org-line{font-size:12.5px;color:var(--muted);margin-top:11px;}
+  .org-name{color:var(--ink-2);border-bottom:1px dashed var(--border-strong);padding:1px 4px;outline:none;border-radius:4px;cursor:text;}
+  .org-name:focus{background:var(--surface-2);border-bottom-color:var(--quality);}
+  .who{display:flex;align-items:center;gap:12px;}
+  .who .avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--quality),var(--production));color:#fff;flex:none;}
+  .who .name{font-weight:800;font-size:16px;} .who .role{color:var(--muted);font-size:12.5px;}
+
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:6px 0 22px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;}
+  .seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;}
+  .seg button.on{background:var(--ink);color:#fff;}
+  .ctl-label{font-size:12px;color:var(--muted);font-weight:600;} .spacer{flex:1;}
+  .btn{border:1px solid var(--border-strong);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+  .btn:hover{background:var(--surface-2);}
+  .btn.primary{background:var(--quality);color:#fff;border-color:var(--quality);} .btn.primary:hover{filter:brightness(1.05);}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:9px;}
+  .reportbtn{margin-left:auto;}
+
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc,var(--quality));}
+  .tile .v{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1;}
+  .tile .l{color:#333230;font-size:12.5px;margin-top:6px;line-height:1.3;font-weight:500;}
+
+  .filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;}
+  .filters .flabel{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:4px;}
+  .chipf{font-size:12.5px;padding:5px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--border-strong);color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:7px;user-select:none;}
+  .chipf .dot{width:8px;height:8px;border-radius:50%;background:var(--cc,var(--muted));}
+  .chipf.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  section{margin:30px 0;}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .sec-head h2{font-size:17px;margin:0;font-weight:800;letter-spacing:-.01em;}
+  .sec-head .hint{color:var(--muted);font-size:12.5px;}
+
+  .boss{background:linear-gradient(180deg,#fbfcff,#f4f8ff);border:1px solid #d9e6f8;border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .boss .btitle{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;flex-wrap:wrap;}
+  .boss .btitle .pin{background:var(--quality);color:#fff;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;}
+  .boss .bline{color:#2b2a28;font-size:13.5px;margin:9px 0 16px;font-weight:500;} .boss .bline b{color:var(--ink);}
+  .boss .btitle{color:var(--ink);}
+  .arow{display:grid;grid-template-columns:210px 1fr auto;align-items:center;gap:16px;padding:11px 8px;border-top:1px solid #e4ecf7;border-radius:8px;cursor:pointer;transition:background .12s;}
+  .arow:first-of-type{border-top:0;} .arow:hover{background:#eef5ff;} .arow.sel{background:#e4eeff;}
+  .arow .an{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;}
+  .arow .an .adepts{margin-left:2px;display:inline-flex;gap:5px;}
+  .arow .an .adepts i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .arow .an .cb{font-size:11px;color:#2a78d6;font-weight:700;}
+  .arow .chev{color:var(--muted);font-size:12px;}
+  .segbar{display:flex;height:20px;border-radius:6px;overflow:hidden;background:var(--surface-2);border:1px solid var(--border);}
+  .segbar span{height:100%;transition:width .8s cubic-bezier(.2,.7,.2,1);}
+  .acount{font-size:12.5px;color:var(--ink);white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums;}
+  .arow .an{color:var(--ink);}
+  .blegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--ink-2);font-weight:600;}
+  .blegend span{display:inline-flex;align-items:center;gap:6px;} .blegend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  .matrix-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px 14px;box-shadow:0 1px 2px rgba(0,0,0,.03);overflow-x:auto;}
+  table.matrix{border-collapse:separate;border-spacing:4px;width:100%;min-width:640px;}
+  table.matrix th{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:4px 6px;text-align:center;vertical-align:bottom;cursor:pointer;}
+  table.matrix th.rowh{text-align:left;text-transform:none;letter-spacing:0;font-size:13px;cursor:default;}
+  table.matrix th.techh{color:var(--ink-2);} table.matrix th:hover:not(.rowh){color:var(--ink);}
+  table.matrix td.rowh{text-align:left;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;padding-right:8px;cursor:pointer;}
+  table.matrix td.rowh .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:middle;}
+  .cell{position:relative;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;transition:transform .1s,box-shadow .1s;cursor:pointer;}
+  .cell:hover{transform:scale(1.05);} .cell.sel{box-shadow:0 0 0 3px var(--ink);}
+  .cell.tech{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border);}
+  .cell.total{background:var(--surface-2)!important;color:var(--ink)!important;border:1px dashed var(--border-strong);cursor:default;} .cell.total:hover{transform:none;}
+  .cell .cdot{position:absolute;top:3px;right:4px;width:6px;height:6px;border-radius:50%;background:#2a78d6;}
+  .matrix-legend{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11.5px;color:var(--muted);}
+  .matrix-legend .sw{width:20px;height:12px;border-radius:3px;}
+
+  .drillpanel{margin-top:14px;border:1px solid var(--quality);border-radius:14px;background:#fbfdff;overflow:hidden;display:none;}
+  .drillpanel.show{display:block;animation:slideIn .25s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+  .drillpanel .dh{display:flex;align-items:center;gap:10px;padding:13px 18px;background:#eef5ff;border-bottom:1px solid #d9e6f8;}
+  .drillpanel .dh .deckicon{width:22px;height:22px;flex:none;color:var(--quality);}
+  .drillpanel .dh .dt{font-weight:800;font-size:14px;} .drillpanel .dh .dc{color:var(--muted);font-size:12.5px;}
+  .drillpanel .dh .dx{margin-left:auto;border:0;background:transparent;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;}
+  .drillpanel .dbody{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;}
+  .dcard{position:relative;border:1px solid var(--border);border-radius:12px;padding:12px 15px;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .dcard .dhead{display:flex;align-items:center;gap:9px;cursor:pointer;flex-wrap:wrap;}
+  .dcard .dhead .htitle{font-weight:800;font-size:14px;color:var(--ink);}
+  .dcard .dhead .hsum{color:var(--ink-2);font-size:12.5px;}
+  .dcard .dhead .deadline{font-size:11px;color:#5a4a12;background:#fff6e6;border:1px solid #f0dca8;border-radius:7px;padding:2px 8px;font-weight:700;}
+  .dcard .dhead .hprog{font-size:11.5px;font-weight:800;color:var(--ink-2);}
+  .dcard .dhead .chev{color:var(--ink-2);font-size:16px;transition:transform .2s;}
+  .dcard.open .dhead .chev{transform:rotate(90deg);}
+  .dcard .dbodyx{display:none;margin-top:11px;padding-top:11px;border-top:1px solid var(--border);}
+  .dcard.open .dbodyx{display:block;}
+  .dcard.st-live{background:#f2fbf4;border-color:#c9e7cf;}
+  .dcard.st-delivered{background:#f1f6fe;border-color:#cbddf5;}
+  .dcard.st-in-progress{background:#fff8ea;border-color:#f0dfae;}
+  .dcard.st-idea{background:#f6f6f4;border-color:#e0dfd8;}
+  .dcard .dtxt{color:var(--ink-2);}
+  input::placeholder,textarea::placeholder{color:#83827a;}
+  .tbul{margin:2px 0 0;padding-left:18px;} .tbul li{font-size:12.5px;color:var(--ink-2);margin-bottom:4px;line-height:1.45;} .tbul li b{color:var(--ink);}
+  /* collapsible report rows */
+  details.rdet>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  details.rdet>summary::-webkit-details-marker{display:none;}
+  details.rdet>summary .htitle{font-weight:800;font-size:14px;color:var(--ink);}
+  details.rdet>summary .hsum{color:var(--ink-2);font-size:12.5px;}
+  details.rdet>summary .chev{color:var(--ink-2);font-size:16px;transition:transform .2s;}
+  details.rdet[open]>summary .chev{transform:rotate(90deg);}
+  details.rdet .rbody{margin-top:11px;padding-top:11px;border-top:1px solid var(--border);}
+  @media print{ details.rdet>.rbody{display:block!important;} details.rdet>summary .chev{display:none;} }
+  .dcard .drow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:11px;}
+  @media(max-width:680px){ .dcard .drow{grid-template-columns:1fr;} }
+  .blk{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;}
+  .blk .bh{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .blk .bh .prog{margin-left:auto;color:var(--ink-2);font-weight:800;}
+  .blk .tgt{font-size:12.5px;color:var(--ink-2);}
+  .act{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;color:var(--ink-2);padding:3px 0;}
+  .act input{margin-top:3px;cursor:pointer;} .act.done label{text-decoration:line-through;color:var(--muted);}
+  .act label{cursor:pointer;}
+  .addrow{display:flex;gap:6px;margin-top:7px;}
+  .addrow input,.addrow select{flex:1;min-width:0;font:inherit;font-size:11.5px;padding:5px 7px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface);color:var(--ink);}
+  .addrow button{border:1px solid var(--border-strong);background:var(--surface);border-radius:7px;font:inherit;font-size:11.5px;font-weight:700;padding:0 10px;cursor:pointer;color:var(--ink-2);white-space:nowrap;}
+  .addrow button:hover{background:var(--surface-2);}
+  .att{display:flex;flex-wrap:wrap;gap:6px;}
+  .attchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:4px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);text-decoration:none;}
+  .attchip:hover{border-color:var(--border-strong);} .attchip .rm{color:var(--muted);cursor:pointer;font-weight:700;margin-left:2px;}
+  .attthumb{height:52px;border-radius:8px;border:1px solid var(--border);display:inline-block;vertical-align:middle;object-fit:cover;}
+  .signin{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--border-strong);border-radius:10px;padding:4px 8px 4px 10px;}
+  .signin input{border:0;background:transparent;font:inherit;font-size:12.5px;outline:none;width:120px;color:var(--ink);font-weight:700;}
+  .signin .who-ico{color:var(--quality);}
+  /* tabs / sheets */
+  .tabs{display:flex;gap:4px;margin:0 0 22px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tabs button{border:0;background:transparent;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted);padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:7px;}
+  .tabs button.on{color:var(--ink);border-bottom-color:var(--quality);}
+  .pane{display:none;} .pane.active{display:block;}
+  /* target tag top-right of card */
+  .tgttag{margin-left:auto;font-size:11.5px;color:#5a4a12;background:#fff6e6;border:1px solid #f0dca8;border-radius:8px;padding:4px 10px;font-weight:600;max-width:48%;line-height:1.3;}
+  .tgttag b{color:#7a6410;font-weight:800;}
+  .dcard .dct{align-items:center;gap:8px;}
+  /* simple tables (activities + timesheet) */
+  .sheet-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03);overflow-x:auto;}
+  table.grid{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+  table.grid th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#3a3934;font-weight:800;padding:11px 14px;background:var(--surface-2);border-bottom:1px solid var(--border);}
+  table.grid td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--ink);vertical-align:middle;}
+  table.grid tr:last-child td{border-bottom:0;}
+  table.grid tfoot td{background:var(--surface-2);font-weight:800;}
+  table.grid input,table.grid select{font:inherit;font-size:12.5px;padding:5px 7px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface);color:var(--ink);}
+  table.grid input[type=time]{width:104px;} table.grid input[type=date]{width:140px;}
+  .trm{color:#b04a3a;cursor:pointer;font-weight:700;border:0;background:transparent;font-size:16px;line-height:1;}
+  .deptdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+  .toolbar .grow{flex:1;} .toolbar label{font-size:12px;font-weight:700;color:var(--ink-2);}
+  .toolbar input,.toolbar select{font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--ink);}
+  .dcard .dct{font-weight:700;font-size:13.5px;display:flex;gap:7px;align-items:flex-start;}
+  .dcard .dct .cd{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
+  .dcard .dmeta{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap;}
+  .stpill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;display:inline-flex;align-items:center;gap:5px;}
+  .qstat{font:inherit;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:16px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-2);cursor:pointer;}
+  .editbtn{font:inherit;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:16px;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-2);cursor:pointer;}
+  .editbtn:hover{background:var(--surface-2);}
+  .dcard .dtxt{font-size:12.5px;color:var(--ink-2);margin-top:8px;}
+  .dcard .dimpact{color:#0a7a0a;font-size:12px;font-weight:700;margin-top:8px;}
+  .dchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .chip{font-size:10.5px;padding:2px 8px;border-radius:16px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2);}
+
+  .cmts{margin-top:11px;padding-top:10px;border-top:1px dashed var(--border);}
+  .cmts .chead{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+  .cmt{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:7px 9px;margin-bottom:6px;border-left:3px solid var(--quality);}
+  .cmt .who{font-size:11.5px;font-weight:700;color:var(--ink);}
+  .cmt .who span{font-weight:400;color:var(--muted);font-size:10.5px;margin-left:5px;}
+  .cmt .tx{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:pre-wrap;}
+  .cbox{display:grid;grid-template-columns:1fr;gap:6px;margin-top:8px;}
+  .cbox input,.cbox textarea{font:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--ink);outline:none;width:100%;}
+  .cbox textarea{resize:vertical;min-height:34px;}
+  .cbox input:focus,.cbox textarea:focus{border-color:var(--quality);}
+  .cbox .crow{display:flex;gap:6px;} .cbox .crow input{flex:0 0 34%;}
+  .postbtn{border:1px solid var(--quality);background:var(--quality);color:#fff;font:inherit;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;flex:none;}
+  .cbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#2a78d6;font-weight:700;}
+
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .col{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:12px;min-height:80px;}
+  .col-head{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;margin-bottom:10px;}
+  .col-head .sd{width:9px;height:9px;border-radius:50%;}
+  .col-head .cnt{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:11px;padding:1px 8px;color:var(--ink-2);font-weight:700;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:9px;cursor:pointer;transition:border-color .12s,box-shadow .12s;}
+  .card:hover{border-color:var(--border-strong);box-shadow:0 2px 6px rgba(0,0,0,.05);}
+  .card .ct{font-weight:700;font-size:13.5px;line-height:1.25;display:flex;gap:7px;align-items:flex-start;}
+  .card .ct .cd{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
+  .card .cmeta{color:var(--muted);font-size:11.5px;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .card .cbody{display:none;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
+  .card.open .cbody{display:block;}
+  .card .txt{font-size:12.5px;color:var(--ink-2);}
+  .card .impact{color:#0a7a0a;font-size:12px;font-weight:700;margin-top:8px;display:flex;gap:6px;align-items:flex-start;}
+  .card .impact svg{flex:none;margin-top:2px;}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+  .tech-only{display:none;}
+  body.detailed .tech-only{display:block;}
+  body.detailed .chips.tech-only{display:flex;} body.detailed .impact.tech-only{display:flex;}
+
+  .tech-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .tf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 26px;}
+  .tf{display:grid;grid-template-columns:130px 1fr 24px;align-items:center;gap:10px;}
+  .tf .n{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tf .track{height:9px;background:var(--surface-2);border-radius:5px;overflow:hidden;}
+  .tf .fill{height:100%;background:linear-gradient(90deg,var(--quality),#6aa6ee);border-radius:5px;width:0;transition:width .8s cubic-bezier(.2,.7,.2,1);}
+  .tf .c{font-size:12px;font-weight:700;text-align:right;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+
+  .tstrip{display:flex;gap:0;overflow-x:auto;padding:6px 2px 2px;}
+  .tstep{flex:1;min-width:150px;padding:0 14px;position:relative;}
+  .tstep::before{content:"";position:absolute;left:0;top:9px;right:0;height:2px;background:var(--grid);}
+  .tstep .node{width:12px;height:12px;border-radius:50%;background:var(--tlc,var(--quality));position:relative;z-index:1;box-shadow:0 0 0 3px var(--plane);}
+  .tstep .d{font-size:11px;color:var(--muted);font-weight:700;margin-top:9px;}
+  .tstep .tt{font-size:12.5px;font-weight:700;margin-top:2px;line-height:1.25;}
+
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(20,20,18,.42);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border-radius:18px;max-width:560px;width:100%;padding:22px 24px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h3{margin:0 0 4px;font-size:18px;font-weight:800;} .modal p.help{margin:0 0 16px;font-size:12.5px;color:var(--muted);}
+  .field{margin-bottom:12px;} .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:5px;}
+  .field input,.field textarea,.field select{width:100%;font:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface-2);color:var(--ink);outline:none;}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--quality);background:var(--surface);}
+  .field textarea{resize:vertical;min-height:52px;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;align-items:center;}
+  #delBtn{margin-right:auto;border-color:#e2b6b6;color:#c0392b;display:none;}
+  #genOut,#cmtOut{display:none;margin-top:14px;}
+  #genOut textarea,#cmtOut textarea{width:100%;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;}
+  .close-x{float:right;border:0;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;}
+  .cbtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .cbtags label{font-size:12px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:16px;padding:4px 11px;cursor:pointer;font-weight:700;color:var(--ink);}
+  .cbtags input{display:none;} .cbtags input:checked + span{color:var(--quality);font-weight:800;}
+
+  @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr);} .board{grid-template-columns:repeat(2,1fr);} .tf-grid{grid-template-columns:1fr;} .arow{grid-template-columns:150px 1fr auto;} }
+  @media (max-width:560px){ .board{grid-template-columns:1fr;} h1{font-size:24px;} }
+
+  /* report / print mode */
+  body.report{background:#fff;}
+  body.report .controls,body.report .filters,body.report .cbox,body.report .postbtn,body.report .qstat,body.report .editbtn,body.report .reportbtn,body.report .arow .chev,body.report .dx,body.report .close-x,body.report .drillpanel{display:none!important;}
+  body.report .card .cbody{display:block!important;}
+  body.report .tech-only{display:block!important;} body.report .chips.tech-only{display:flex!important;} body.report .impact.tech-only{display:flex!important;}
+  body.report .dcard{box-shadow:none;}
+  body.report .card{cursor:default;} body.report .arow{cursor:default;}
+  @media print{ .controls,.filters,.btn,.close-x,.cbox,.postbtn,.qstat,.editbtn,.reportbtn{display:none!important;} .card .cbody{display:block!important;} body{background:#fff;} }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="simple">
+<div class="wrap" id="wrap">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow">Ongoing Project &amp; Impact Tracker</div>
+      <h1>Contribution &amp; <span class="accent">Impact</span> Tracker</h1>
+      <div class="sub">A living project tracker — updated from this page. For my manager on top; the full detail below. Click anything to open its deck of projects and log updates.</div>
+      <div class="org-line">Organization: <span class="org-name" contenteditable="true" spellcheck="false">Beyond Gravity / greenTEG</span> · click to edit</div>
+    </div>
+    <div class="who">
+      <div><div class="name" style="text-align:right">Adriele</div><div class="role">Quality &amp; Development · BL3914</div></div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <span class="ctl-label">View</span>
+    <div class="seg" id="viewSeg">
+      <button data-v="simple" class="on">Normal</button>
+      <button data-v="detailed">Detailed-technical</button>
+    </div>
+    <span class="ctl-label" id="viewNote">Plain language — for everyone</span>
+    <span class="spacer"></span>
+    <span class="signin" title="Type your name once — every update you log is signed automatically"><span class="who-ico">👤</span><input id="whoami" placeholder="sign in (e.g. Simone)" spellcheck="false"></span>
+    <button class="btn" id="exportCmt">📝 Update log</button>
+    <button class="btn" id="dlFull">⬇ Report</button>
+    <button class="btn" id="dlXlsx">⬇ Excel (all sheets)</button>
+    <button class="btn primary" id="addBtn">＋ Add project</button>
+    <button class="btn" id="addActBtn">＋ Add activity</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-tab="dashboard" class="on">📊 Dashboard</button>
+    <button data-tab="activities">🗂 Activities</button>
+    <button data-tab="timesheet">⏱ Timesheet</button>
+  </div>
+
+  <div class="pane active" id="pane-dashboard">
+  <div class="kpis" id="kpis"></div>
+
+  <!-- ===== FOR MY MANAGER (primary, on top) ===== -->
+  <section>
+    <div class="boss">
+      <div class="btitle"><span class="pin">For my manager</span> Areas of development &amp; live status
+        <span class="reportbtn" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="openManager">↗ Open full view</button><button class="btn sm" id="dlManager">⬇ Download report</button></span></div>
+      <div class="bline" id="bossLine"></div>
+      <div id="bossRows"></div>
+      <div class="blegend">
+        <span><i style="background:var(--st-live)"></i>Live</span>
+        <span><i style="background:var(--st-delivered)"></i>Delivered</span>
+        <span><i style="background:var(--st-progress)"></i>In progress</span>
+        <span><i style="background:var(--st-idea)"></i>Planned</span>
+      </div>
+      <div id="drillManager" class="drillpanel"></div>
+    </div>
+  </section>
+
+  <div class="filters" id="filters"></div>
+
+  <!-- ===== PROJECT BOARD ===== -->
+  <section>
+    <div class="sec-head"><h2>Projects</h2>
+      <div class="seg" id="boardView"><button data-b="list" class="on">☰ List</button><button data-b="cards">▦ Cards</button><button data-b="table">▤ Table</button></div>
+      <span class="hint"><b>List</b>: click a line to open detail, documents &amp; notes · <b>Cards</b>: status board · <b>Table</b>: spreadsheet</span></div>
+    <div id="projListWrap"></div>
+    <div class="board" id="board" style="display:none"></div>
+    <div class="sheet-card" id="projGridWrap" style="display:none"><table class="grid" id="projGrid"></table></div>
+  </section>
+
+  <!-- ===== TECHNOLOGIES ===== -->
+  <section>
+    <div class="sec-head"><h2>Technologies &amp; languages</h2><span class="hint">the technical depth — for those who want it</span></div>
+    <div class="tech-card"><div class="tf-grid" id="techFreq"></div></div>
+  </section>
+
+  <!-- ===== TIMELINE ===== -->
+  <section>
+    <div class="sec-head"><h2>Delivery timeline</h2></div>
+    <div class="tstrip" id="timeline"></div>
+  </section>
+
+  <!-- ===== AT A GLANCE (moved last) ===== -->
+  <section id="glanceSection">
+    <div class="sec-head"><h2>At a glance</h2><span class="hint">department × area of contribution · <b>click a cell to open the deck</b> · blue dot = has updates</span>
+      <button class="btn sm reportbtn" id="dlGlance">⬇ Download this report</button></div>
+    <div class="matrix-card"><div id="matrix"></div>
+      <div class="matrix-legend"><span>Fewer</span>
+        <span class="sw" style="background:var(--h1)"></span><span class="sw" style="background:var(--h2)"></span>
+        <span class="sw" style="background:var(--h3)"></span><span class="sw" style="background:var(--h4)"></span>
+        <span>More projects</span></div>
+      <div id="drill" class="drillpanel"></div>
+    </div>
+  </section>
+  </div><!-- /pane-dashboard -->
+
+  <!-- ===== ACTIVITIES SHEET ===== -->
+  <div class="pane" id="pane-activities">
+    <div class="sec-head"><h2>Activities</h2><span class="hint">standalone activities — not tied to a project · each linked to a department and/or a person</span></div>
+    <div class="toolbar">
+      <label>Filter:</label>
+      <select id="actFilterDept"><option value="">All departments</option></select>
+      <input id="actFilterPerson" placeholder="filter by person…">
+      <span class="grow"></span>
+      <button class="btn primary" id="addActBtn2">＋ Add activity</button>
+      <button class="btn" id="dlAct">⬇ Export activities (CSV)</button>
+    </div>
+    <div class="sheet-card"><table class="grid" id="actTable"></table></div>
+  </div>
+
+  <!-- ===== TIMESHEET SHEET ===== -->
+  <div class="pane" id="pane-timesheet">
+    <div class="sec-head"><h2>Timesheet</h2><span class="hint">clock in / out and lunch · worked hours calculated automatically</span></div>
+    <div class="toolbar">
+      <label>Who:</label><input id="tsWho" placeholder="name / code" style="width:130px">
+      <label>Month:</label><select id="tsMonth"><option value="">All</option></select>
+      <label>or period:</label><input type="date" id="tsFrom"><span style="color:var(--muted)">→</span><input type="date" id="tsTo">
+      <span class="grow"></span>
+      <button class="btn" id="tsAdd">＋ Add day</button>
+      <button class="btn primary" id="dlTs">⬇ Download timesheet (CSV)</button>
+    </div>
+    <div class="sheet-card"><table class="grid" id="tsTable"></table></div>
+    <p class="hint" style="margin-top:10px">Worked = (clock out − clock in) − lunch. Pick a month or a from/to period, then download — it opens in Excel.</p>
+  </div>
+
+  <footer>
+    <div>Built by Adriele · updated <span id="today"></span></div>
+    <div>Interactive structure now · live Power BI data to follow</div>
+  </footer>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close-x" id="closeX">×</button>
+    <h3 id="modalTitle">Add a project</h3>
+    <p class="help">Update any field and save. Changes show immediately; a snippet is generated so you can keep them in the file until the tracker is hosted online.</p>
+    <div class="field"><label>Project name</label><input id="f_name" placeholder="e.g. Supplier scorecard automation"></div>
+    <div class="frow">
+      <div class="field"><label>Department</label><select id="f_dept"></select></div>
+      <div class="field"><label>Status</label><select id="f_status">
+        <option value="idea">Planned</option><option value="in-progress">In progress</option>
+        <option value="delivered" selected>Delivered</option><option value="live">Live</option></select></div>
+    </div>
+    <div class="field"><label>Areas of contribution</label><div class="cbtags" id="f_areas"></div></div>
+    <div class="field"><label>Date</label><input id="f_date" type="date"></div>
+    <div class="field"><label>Plain-language description</label><textarea id="f_simple" placeholder="What it does, in one or two simple sentences."></textarea></div>
+    <div class="field"><label>Technical highlights — CV-style bullets (for HR · DevOps · data · analytics)</label><textarea id="f_detail" rows="6" placeholder="Built a label reader in Python (Claude vision + OCR + barcode)&#10;Automated a three-way check across labels, order and Teamcenter&#10;Integrated the flow from photos through SQLite to Excel"></textarea><div style="font-size:11px;color:var(--muted);margin-top:4px">Write each line as a CV-style bullet — start with a verb (Built, Automated, Designed, Integrated, Delivered…) and name the tech. One line = one bullet. (A line that starts with a short “Label:” is shown in bold.)</div></div>
+    <div class="field"><label>Key components (optional)</label><input id="f_components" placeholder="e.g. core/pipeline.py · consensus · excel_sink"></div>
+    <div class="field"><label>Impact / result</label><input id="f_impact" placeholder="e.g. 296 labels read in one run"></div>
+    <div class="field"><label>Target / goal</label><input id="f_target" placeholder="e.g. Roll out to all incoming lines by August"></div>
+    <div class="field"><label>Technologies (comma-separated)</label><input id="f_tech" placeholder="Python, Power BI, Excel"></div>
+    <p class="help" style="margin:-4px 0 12px">Actions, attachments and update notes are added directly on the project card.</p>
+    <div class="modal-actions"><button class="btn" id="delBtn">🗑 Delete</button><button class="btn" id="cancelBtn">Cancel</button><button class="btn primary" id="saveBtn">Add to board</button></div>
+    <div id="genOut">
+      <label style="font-size:12px;font-weight:700;color:var(--ink-2)">Copy this into the <code>projects</code> list near the top of the file to keep it:</label>
+      <textarea id="genText" readonly onclick="this.select()"></textarea>
+      <button class="btn" id="copyBtn" style="margin-top:8px">Copy snippet</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE LOG MODAL -->
+<div class="overlay" id="cover">
+  <div class="modal">
+    <button class="close-x" id="cCloseX">×</button>
+    <h3>Update log</h3>
+    <p class="help">Every update note logged so far. Copy to share or keep — notes live in the page for now; once the tracker is hosted online they'll be shared automatically.</p>
+    <div id="cmtOut" style="display:block"><textarea id="cmtText" readonly onclick="this.select()"></textarea>
+      <button class="btn" id="cCopyBtn" style="margin-top:8px">Copy update log</button></div>
+  </div>
+</div>
+
+<!-- ADD ACTIVITY MODAL -->
+<div class="overlay" id="actOverlay">
+  <div class="modal">
+    <button class="close-x" id="actCloseX">×</button>
+    <h3 id="actTitle">Add activity</h3>
+    <p class="help">A standalone activity — not necessarily tied to a project. Link it to a department and/or a person.</p>
+    <div class="frow">
+      <div class="field"><label>Date</label><input id="a_date" type="date"></div>
+      <div class="field"><label>Department</label><select id="a_dept"></select></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Person</label><input id="a_person" placeholder="you"></div>
+      <div class="field"><label>Supporter (who helped)</label><input id="a_supporter" placeholder="optional"></div>
+    </div>
+    <div class="field"><label>Activity</label><textarea id="a_text" placeholder="What was done"></textarea></div>
+    <div class="field"><label>Impact / result</label><input id="a_impact" placeholder="optional"></div>
+    <div class="modal-actions"><button class="btn" id="actCancel">Cancel</button><button class="btn primary" id="aSave">Add activity</button></div>
+  </div>
+</div>
+
+<script>
+/* ================= DATA — edit here or use ＋ Add project / ✎ Edit ================= */
+const departments = [
+  {id:'quality',     name:'Quality',                 color:'#2a78d6', meta:'IQC · IPQC · OQC · Metrology'},
+  {id:'logistics',   name:'Goods Receiving & Logistics', color:'#1baf7a', meta:'Incoming goods · Loose Items'},
+  {id:'procurement', name:'Procurement & Order Mgmt', color:'#e08a00', meta:'Orders · parts lists'},
+  {id:'production',  name:'Production & Operations',  color:'#5a45c9', meta:'Inbound → outbound flow'},
+];
+let AREAS = ['Automation & Efficiency','Quality & Verification','Data & Business Intelligence','Process Improvement'];
+
+let projects = [
+  {name:'LabelScanner — AI vision label reader', dept:'quality', status:'live', date:'2026-07-21',
+   areas:['Automation & Efficiency','Quality & Verification'],
+   simple:'Point a camera at part labels and the details type themselves into Excel — no manual data entry.',
+   detail:'Built a multi-engine label reader in Python, combining Claude vision with pyzbar / zxing barcode decoding and Tesseract / EasyOCR\nDesigned a consensus step that reconciles material, charge/batch, quantity and serial across the three readers\nEngineered a plugin-profile system (WAE / MSL) so new label families are added without touching the core\nIntegrated the flow from camera photos through SQLite (label_scan.db) to Excel via openpyxl\nPackaged the tool as a standalone Windows .exe with PyInstaller for non-technical users\nAutomated reading of 296 labels in a single run, removing manual data entry',
+   components:'core/pipeline.py · core/detect.py · core/consensus.py · profiles/{wae,msl}.py · sinks/excel_sink.py · core/models.py · core/registry.py · label_scan.db (SQLite)',
+   impact:'296 part labels read automatically in one run.',
+   target:'Roll out to all incoming label types (WAE, MSL, Vegas) and package as a standalone .exe.',
+   tech:['Python','Claude API','Barcode','OCR','openpyxl'],
+   actions:[{text:'Verify MSL profile on Vegas photos',done:true},{text:'Package as .exe (PyInstaller)',done:false},{text:'Regenerate exposed API key',done:false}],
+   attachments:[{type:'excel',name:'label_scan_GOOD.xlsx',url:'#'},{type:'photo',name:'WAE label sample',url:'#'}], comments:[]},
+  {name:'BOM / Auftragsstückliste comparison', dept:'quality', status:'delivered', date:'2026-07-22',
+   areas:['Quality & Verification','Data & Business Intelligence'],
+   simple:'Automatically checks that what physically arrived matches the order documents, and shows what is missing or extra.',
+   detail:'Automated a three-way reconciliation in Python (pandas) across scanned labels, the Auftragsstückliste and Teamcenter\nKeyed matching on normalized material numbers, classifying each row as match, missing, extra or quantity-mismatch\nProduced a colour-coded Excel report (openpyxl) with a summary sheet for instant review\nSurfaced 13 missing and 50 extra items in a single pass',
+   components:'cross_compare.py · material-number normalizers · openpyxl conditional styling',
+   impact:'3 sources reconciled; 13 missing and 50 extra items surfaced instantly.',
+   target:'Add Opcenter BOM as a fourth source.',
+   tech:['Python','openpyxl','Data reconciliation'],
+   actions:[{text:'Add Opcenter BOM reader',done:false}],
+   attachments:[{type:'excel',name:'Auftragsstückliste_vs_scan.xlsx',url:'#'}], comments:[]},
+  {name:'Clean report output', dept:'quality', status:'delivered', date:'2026-07-22',
+   areas:['Quality & Verification','Data & Business Intelligence'],
+   simple:'Turns a confusing list of scan results into a clear two-sheet summary anyone can review.',
+   detail:'Consolidated raw scanner output into a clean two-sheet Excel review (Python, openpyxl, sqlite3)\nIsolated only the uncertain reads into an Attention sheet, each with a reason\nRecovered the source photo for every label by joining scanned_at to processing_log in SQLite',
+   components:'clean_report.py · sqlite join scanned_at→processing_log · openpyxl',
+   impact:'Review-ready output; uncertainty isolated to one short list.',
+   target:'Fold clean output into the scanner so no separate step is needed.',
+   tech:['Python','SQL','openpyxl'], actions:[], attachments:[], comments:[]},
+  {name:'Ariane 6 Loose Items verification', dept:'logistics', status:'in-progress', date:'2026-07-21',
+   areas:['Automation & Efficiency','Quality & Verification'],
+   simple:'Confirms a shipment’s contents match its paperwork before the parts move on.',
+   detail:'Composed an end-to-end verification workflow, reusing the scanner (MSL profile) and the BOM comparison\nConnected incoming loose-item photos to the order 294527 BOM to confirm contents before release\nDelivered a pass/fail report that removes manual line-by-line checking',
+   components:'LabelScanner (MSL profile) + cross_compare.py + verification report',
+   impact:'Removes manual line-by-line checking of incoming goods.',
+   target:'Verify the Vegas MSL run end-to-end, then decide comparison source.',
+   tech:['Python','Claude API','Workflow design'],
+   actions:[{text:'Confirm updated scanner files copied in',done:false},{text:'Check read_msl_material sheet quality',done:false}],
+   attachments:[], comments:[]},
+  {name:'Order parts-list digitisation', dept:'procurement', status:'delivered', date:'2026-07-20',
+   areas:['Automation & Efficiency','Data & Business Intelligence'],
+   simple:'Turns a scanned paper parts list into reusable digital data.',
+   detail:'Digitised a scanned, no-text-layer Auftragsstückliste PDF into structured Excel (Python, AI / OCR extraction, openpyxl)\nPreserved handwritten notes and “folgt noch” positions, with a manual check on low-confidence cells\nTurned a 42-entry paper list into reusable data',
+   components:'PDF rasterize → AI/OCR extraction → normalize → openpyxl',
+   impact:'42-entry paper parts list turned into structured, reusable data.',
+   target:'', tech:['Python','AI extraction','openpyxl'],
+   actions:[], attachments:[{type:'excel',name:'Auftragsstueckliste_294527.xlsx',url:'#'}], comments:[]},
+  {name:'Organization Flow Map', dept:'production', status:'live', date:'2026-07-20',
+   areas:['Process Improvement','Data & Business Intelligence'],
+   simple:'An interactive map of how the whole company works, from goods-in to shipping — click any part to explore it.',
+   detail:'Built an interactive company flow map as a single self-contained HTML, CSS and JavaScript file (no dependencies)\nModelled nested departments with pan/zoom and click-to-expand drill-down\nSet up Quality as the reference template for every other department\nPrepared it to surface live Power BI figures per block',
+   components:'self-contained HTML/CSS/JS · nested node model · pan/zoom + drill-down',
+   impact:'Whole-organization process made visible in one click-through view.',
+   target:'Replace scaffold blocks with the real greenTEG departments and flows.',
+   tech:['HTML/CSS/JS','Interactive design'],
+   actions:[{text:'Detail next department after Quality',done:false},{text:'Define KPIs + Power BI source per block',done:false}],
+   attachments:[{type:'link',name:'org-flow-map.html',url:'#'}], comments:[]},
+  {name:'Power BI reporting layer', dept:'production', status:'in-progress', date:'2026-07-22',
+   areas:['Data & Business Intelligence','Process Improvement'],
+   simple:'Live dashboards that keep the numbers up to date automatically.',
+   detail:'Designed a star-schema data model with DAX measures (throughput, pass rate, lead time, open orders)\nBuilt Power Query (M) transforms over refreshed source extracts with scheduled refresh\nPositioned it to feed both the flow map and this tracker with live figures',
+   components:'star-schema model · DAX measures · scheduled refresh · shared datasets',
+   impact:'Foundation to turn static maps into live, refreshing dashboards.',
+   target:'Wire first live measure (pass rate) into the flow map.',
+   tech:['Power BI','DAX','Data modelling'], actions:[], attachments:[], comments:[]},
+  {name:'Contribution & Impact Tracker', dept:'production', status:'in-progress', date:'2026-07-22',
+   areas:['Data & Business Intelligence','Process Improvement'],
+   simple:'This dashboard — a living, one-page view of everything delivered, readable by technical and non-technical people alike.',
+   detail:'Built this living dashboard as one self-contained HTML, CSS and JavaScript file\nArchitected a single data model that drives every view — KPIs, matrix, list / cards / table, timesheet and activities\nImplemented client-side Excel export with SheetJS and element-relative handlers for reuse across views',
+   components:'deckCard() · render* pipeline · element-relative handlers · SheetJS .xlsx export',
+   impact:'One shareable link that grows as new work ships.',
+   target:'Host online so updates are shared and the boss gets a permanent URL.',
+   tech:['HTML/CSS/JS','JavaScript','Interactive design'],
+   actions:[{text:'Decide hosting (SharePoint vs web host)',done:false}],
+   attachments:[], comments:[]},
+];
+
+const STATUSES = [
+  {id:'idea',label:'Planned',color:'#a6a49c'},
+  {id:'in-progress',label:'In progress',color:'#e0a200'},
+  {id:'delivered',label:'Delivered',color:'#2a78d6'},
+  {id:'live',label:'Live',color:'#0ca30c'},
+];
+const deptById=Object.fromEntries(departments.map(d=>[d.id,d]));
+const statusById=Object.fromEntries(STATUSES.map(s=>[s.id,s]));
+
+let filter={type:'all',value:null}, sel=null, editing=null, currentUser='', cardOpen={};
+const nComments=p=>(p.comments||[]).length;
+const fmt=d=>{ if(!d)return''; const dt=new Date(d+'T00:00:00'); return isNaN(dt)?d:dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); };
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function bulletLine(line){ const i=line.indexOf(':'); if(i>0&&i<28){ return `<li><b>${esc(line.slice(0,i))}:</b> ${esc(line.slice(i+1).trim())}</li>`; } return `<li>${esc(line)}</li>`; }
+function techUL(p){ const lines=(p.detail||'').split('\n').map(s=>s.trim()).filter(Boolean); return lines.length?`<ul class="tbul">${lines.map(bulletLine).join('')}</ul>`:''; }
+
+function renderKPIs(){
+  const nProj=projects.length,nDept=new Set(projects.map(p=>p.dept)).size,nLive=projects.filter(p=>p.status==='live'||p.status==='delivered').length;
+  const data=[
+    {v:nProj,l:'Projects & tools',c:'var(--quality)'},{v:nDept,l:'Departments reached',c:'var(--logistics)'},
+    {v:AREAS.length,l:'Areas of contribution',c:'var(--procurement)'},{v:nLive,l:'Delivered / live',c:'var(--st-live)'},
+    {v:'296',l:'Labels auto-read (peak run)',c:'var(--production)'},
+  ];
+  kpis.innerHTML=data.map(k=>`<div class="tile" style="--tc:${k.c}"><div class="v">${k.v}</div><div class="l">${k.l}</div></div>`).join('');
+}
+
+function renderBoss(){
+  const live=projects.filter(p=>p.status==='live').length,del=projects.filter(p=>p.status==='delivered').length,prog=projects.filter(p=>p.status==='in-progress').length;
+  document.getElementById('bossLine').innerHTML=`Across <b>${AREAS.length} areas of development</b>, <b>${live} initiative${live!=1?'s':''} live</b>, <b>${del} delivered</b> and <b>${prog} in progress</b> — refreshed as work ships.`;
+  const order=['live','delivered','in-progress','idea']; let h='';
+  AREAS.forEach(a=>{
+    const ps=projects.filter(p=>(p.areas||[]).includes(a)); const tot=ps.length||1;
+    const depts=[...new Set(ps.map(p=>p.dept))]; const cmts=ps.reduce((n,p)=>n+nComments(p),0);
+    let bar=''; order.forEach(sid=>{const n=ps.filter(p=>p.status===sid).length; if(n)bar+=`<span style="width:${n/tot*100}%;background:${statusById[sid].color}" title="${statusById[sid].label}: ${n}"></span>`;});
+    const parts=order.map(sid=>{const n=ps.filter(p=>p.status===sid).length; return n?`${n} ${statusById[sid].label.toLowerCase()}`:null;}).filter(Boolean).join(' · ');
+    const s=sel&&sel.dept===null&&sel.area===a?' sel':'';
+    h+=`<div class="arow${s}" data-area="${a}"><div class="an">${a}<span class="adepts">${depts.map(id=>`<i style="background:${deptById[id].color}" title="${deptById[id].name}"></i>`).join('')}</span>${cmts?`<span class="cb">📝 ${cmts}</span>`:''}</div>
+      <div class="segbar">${bar}</div><div class="acount">${parts||'—'} <span class="chev">›</span></div></div>`;
+  });
+  const el=document.getElementById('bossRows'); el.innerHTML=h;
+  el.querySelectorAll('.arow').forEach(r=>r.onclick=()=>drill(null,r.dataset.area,'drillManager'));
+}
+
+function renderFilters(){
+  let h=`<span class="flabel">Filter</span><span class="chipf ${filter.type==='all'?'on':''}" data-t="all"><span class="dot" style="--cc:var(--ink)"></span>All</span>`;
+  departments.forEach(d=>h+=`<span class="chipf ${filter.type==='dept'&&filter.value===d.id?'on':''}" data-t="dept" data-v="${d.id}"><span class="dot" style="--cc:${d.color}"></span>${d.name}</span>`);
+  STATUSES.forEach(s=>h+=`<span class="chipf ${filter.type==='status'&&filter.value===s.id?'on':''}" data-t="status" data-v="${s.id}"><span class="dot" style="--cc:${s.color}"></span>${s.label}</span>`);
+  filters.innerHTML=h;
+  filters.querySelectorAll('.chipf').forEach(c=>c.onclick=()=>{const t=c.dataset.t; filter=t==='all'?{type:'all',value:null}:{type:t,value:c.dataset.v}; renderFilters(); renderBoard(); renderProjList(); renderProjTable();});
+}
+
+const hcol=(n,max)=>{ if(!n)return'var(--h0)'; const q=n/max; if(q<=.25)return'var(--h1)'; if(q<=.5)return'var(--h2)'; if(q<=.75)return'var(--h3)'; return'var(--h4)'; };
+function renderMatrix(){
+  const counts={}; let max=1;
+  departments.forEach(d=>{counts[d.id]={}; AREAS.forEach(a=>counts[d.id][a]=0);});
+  projects.forEach(p=>(p.areas||[]).forEach(a=>{ if(counts[p.dept]&&a in counts[p.dept])counts[p.dept][a]++; }));
+  departments.forEach(d=>AREAS.forEach(a=>{ if(counts[d.id][a]>max)max=counts[d.id][a]; }));
+  const techCount={}; departments.forEach(d=>techCount[d.id]=new Set(projects.filter(p=>p.dept===d.id).flatMap(p=>p.tech)).size);
+  let h=`<table class="matrix"><thead><tr><th class="rowh">Department</th>`+AREAS.map(a=>`<th data-area="${a}">${a}</th>`).join('')+`<th class="techh" data-area="__tech__">Tech &amp; Languages</th><th>Total</th></tr></thead><tbody>`;
+  departments.forEach(d=>{
+    const tot=projects.filter(p=>p.dept===d.id).length;
+    h+=`<tr><td class="rowh" data-dept="${d.id}"><span class="dot" style="background:${d.color}"></span>${d.name}</td>`;
+    AREAS.forEach(a=>{ const n=counts[d.id][a]; const bg=hcol(n,max); const dark=(n/max)>.5;
+      const s=sel&&sel.dept===d.id&&sel.area===a?' sel':'';
+      const dot=n&&projects.some(p=>p.dept===d.id&&(p.areas||[]).includes(a)&&nComments(p))?'<span class="cdot"></span>':'';
+      h+=`<td><div class="cell${s}" data-dept="${d.id}" data-area="${a}" style="background:${bg};color:${dark?'#fff':'var(--ink-2)'}">${n||''}${dot}</div></td>`; });
+    const st=sel&&sel.dept===d.id&&sel.area==='__tech__'?' sel':'';
+    h+=`<td><div class="cell tech${st}" data-dept="${d.id}" data-area="__tech__">${techCount[d.id]}</div></td>`;
+    h+=`<td><div class="cell total">${tot}</div></td></tr>`;
+  });
+  h+=`</tbody></table>`; matrix.innerHTML=h;
+  matrix.querySelectorAll('.cell[data-area]').forEach(c=>c.onclick=()=>drill(c.dataset.dept,c.dataset.area,'drill'));
+  matrix.querySelectorAll('td.rowh[data-dept]').forEach(c=>c.onclick=()=>drill(c.dataset.dept,null,'drill'));
+  matrix.querySelectorAll('th[data-area]').forEach(c=>c.onclick=()=>drill(null,c.dataset.area,'drill'));
+}
+
+let drillHost='drill';
+function drill(dept,area,host){
+  host=host||'drill';
+  if(sel&&sel.dept===dept&&sel.area===area&&drillHost===host){ closeDrill(); return; }
+  if(drillHost!==host){ const o=document.getElementById(drillHost); o.className='drillpanel'; o.innerHTML=''; }
+  drillHost=host; sel={dept,area}; renderMatrix(); renderBoss(); renderDrill(true);
+}
+function closeDrill(){ sel=null; renderMatrix(); renderBoss(); document.getElementById(drillHost).className='drillpanel'; }
+function renderDrill(scroll){
+  const d=document.getElementById(drillHost);
+  if(!sel){ d.className='drillpanel'; return; }
+  const {dept,area}=sel;
+  let ps=projects.slice(); if(dept)ps=ps.filter(p=>p.dept===dept); if(area&&area!=='__tech__')ps=ps.filter(p=>(p.areas||[]).includes(area));
+  const dName=dept?deptById[dept].name:'All departments'; const aName=area==='__tech__'?'Tech & Languages':(area||'All areas');
+  let body;
+  if(area==='__tech__'){
+    const freq={}; ps.forEach(p=>p.tech.forEach(t=>freq[t]=(freq[t]||0)+1));
+    body=`<div style="grid-column:1/-1"><div class="dchips">${Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${t}${n>1?` ·${n}`:''}</span>`).join('')||'—'}</div></div>`;
+  } else {
+    const sw={'in-progress':0,'idea':1,'live':2,'delivered':3};
+    ps=ps.slice().sort((a,b)=>(sw[a.status]??9)-(sw[b.status]??9));
+    body=ps.map((p,i)=>deckCard(p,i)).join('')||`<div style="color:var(--ink-2);font-size:13px">No projects here yet.</div>`;
+  }
+  const deckIcon=`<svg class="deckicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="13" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v12"/></svg>`;
+  d.innerHTML=`<div class="dh">${deckIcon}<div><div class="dt">Deck · ${dName} · ${aName}</div><div class="dc">${area==='__tech__'?'technologies used here':ps.length+' project'+(ps.length!=1?'s':'')+' · edit status / add update notes'}</div></div><button class="dx" onclick="closeDrill()">×</button></div><div class="dbody">${body}</div>`;
+  d.className='drillpanel show'; if(scroll)d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+const attIcon=t=>({photo:'📷',excel:'📊',pdf:'📄',word:'📝',link:'🔗'}[t]||'🔗');
+function attChip(at,gi,xi){
+  const isImg=at.type==='photo'&&at.url&&(at.url.startsWith('data:image')||/\.(png|jpe?g|gif|webp)$/i.test(at.url));
+  const inner=isImg?`<img class="attthumb" src="${at.url}" alt="${esc(at.name)}">`:`${attIcon(at.type)} ${esc(at.name)}`;
+  const has=at.url&&at.url!=='#'; const href=has?esc(at.url):'javascript:void(0)';
+  return `<a class="attchip" href="${href}" ${has?'target="_blank" rel="noopener"':''}>${inner}<span class="rm" title="Remove" onclick="event.preventDefault();event.stopPropagation();removeAttachment(this,${xi})">×</span></a>`;
+}
+// One interactive project card, used in the deck AND the Projects list. Handlers look up the card
+// via the clicked element (data-gi), so the same project can appear in more than one place safely.
+function deckCard(p,idx){
+  const gi=projects.indexOf(p); const dp=deptById[p.dept],s=statusById[p.status];
+  const open = cardOpen[gi]!==undefined?cardOpen[gi]:(idx===0);
+  const cmts=(p.comments||[]).map(c=>`<div class="cmt"><div class="who">${esc(c.by)||'Someone'}<span>${esc(c.at||'')}</span></div><div class="tx">${esc(c.text)}</div></div>`).join('');
+  const stsel=STATUSES.map(o=>`<option value="${o.id}" ${o.id===p.status?'selected':''}>${o.label}</option>`).join('');
+  const acts=(p.actions||[]); const done=acts.filter(a=>a.done).length;
+  const actsHtml=acts.map((a,ai)=>`<div class="act ${a.done?'done':''}"><input type="checkbox" data-ai="${ai}" ${a.done?'checked':''} onchange="toggleAction(this)"><label>${esc(a.text)}</label></div>`).join('')||'<div style="font-size:12px;color:var(--ink-2)">No actions yet.</div>';
+  const attHtml=(p.attachments||[]).map((at,xi)=>attChip(at,gi,xi)).join('')||'<div style="font-size:12px;color:var(--ink-2)">No files yet.</div>';
+  const raw=(p.impact||p.simple||''); const sum=raw?'— '+esc(raw.slice(0,64))+(raw.length>64?'…':''):'';
+  return `<div class="dcard st-${p.status} ${open?'open':''}" data-gi="${gi}">
+    <div class="dhead" onclick="toggleCard(this)">
+      <span class="stpill" style="background:${s.color}">${s.label}</span>
+      <span class="cd" style="background:${dp.color};width:8px;height:8px;border-radius:50%"></span>
+      <span class="htitle">${p.name}</span>
+      <span class="hsum">${sum}</span>
+      <span style="flex:1;min-width:8px"></span>
+      ${p.target?`<span class="deadline">🎯 ${esc(p.target.slice(0,44))}${p.target.length>44?'…':''}</span>`:''}
+      ${acts.length?`<span class="hprog">✅ ${done}/${acts.length}</span>`:''}
+      ${nComments(p)?`<span class="cbadge">📝 ${nComments(p)}</span>`:''}
+      <span class="chev">›</span>
+    </div>
+    <div class="dbodyx">
+      <div class="dmeta"><span style="font-size:11.5px;color:var(--ink-2);font-weight:600">${dp.name}${p.date?' · '+fmt(p.date):''}</span>
+        <select class="qstat" title="Change status" onchange="setStatus(cardGi(this),this.value)">${stsel}</select>
+        <button class="editbtn" onclick="openEdit(${gi})">✎ Edit</button></div>
+      ${p.target?`<div class="dtxt" style="margin-top:8px"><b style="color:#7a6410">🎯 Target:</b> ${esc(p.target)}</div>`:''}
+      <div class="dtxt" style="margin-top:6px">${p.simple||''}</div>
+      ${p.impact?`<div class="dimpact">✓ ${p.impact}</div>`:''}
+      <div class="blk tech-only" style="margin-top:11px"><div class="bh">🛠 Technical detail <span style="color:var(--ink-2);font-weight:600;text-transform:none;letter-spacing:0">for HR · DevOps · data · analytics</span></div>
+        ${techUL(p)}
+        ${p.components?`<div class="dtxt" style="margin-top:5px"><b>Key components:</b> <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px">${esc(p.components)}</span></div>`:''}
+        <div class="dchips" style="margin-top:8px">${p.tech.map(t=>`<span class="chip">${t}</span>`).join('')}</div></div>
+      <div class="blk" style="margin-top:11px"><div class="bh">✅ Actions &amp; completed <span class="prog">${done}/${acts.length}</span></div>${actsHtml}
+        <div class="addrow"><input class="actioninput" placeholder="New action…" onkeydown="if(event.key==='Enter')addAction(this)"><button onclick="addAction(this)">Add</button></div></div>
+      <div class="blk" style="margin-top:12px"><div class="bh">📎 Attachments <span style="color:var(--ink-2);font-weight:600;text-transform:none;letter-spacing:0">photos · Excel · Word · PDF · links</span></div>
+        <div class="att">${attHtml}</div>
+        <div class="addrow"><select class="ax"><option value="link">🔗 Link</option><option value="excel">📊 Excel</option><option value="pdf">📄 PDF</option><option value="word">📝 Word</option><option value="photo">📷 Photo</option></select>
+          <input class="al" placeholder="name"><input class="au" placeholder="paste link / path"><button onclick="addAttachment(this)">Add</button>
+          <button onclick="this.parentElement.querySelector('.fileinput').click()">📷 From device</button><input type="file" class="fileinput" accept="image/*" style="display:none" onchange="addPhoto(this)"></div></div>
+      <div class="cmts"><div class="chead">📝 Update notes</div>${cmts||'<div style="font-size:12px;color:var(--ink-2);margin-bottom:6px">No updates yet.</div>'}
+        <div class="cbox"><div style="display:flex;gap:6px"><input class="noteinput" placeholder="${currentUser?('Add an update as '+esc(currentUser)+'…'):'Sign in (top right), then add an update…'}" onkeydown="if(event.key==='Enter')postComment(this)"><button class="postbtn" onclick="postComment(this)">Add note</button></div></div></div>
+    </div>
+  </div>`;
+}
+function cardOf(el){ return el.closest('[data-gi]'); }
+function cardGi(el){ return +cardOf(el).dataset.gi; }
+function reProjects(){ renderProjList(); if(sel)renderDrill(false); }
+function setStatus(gi,val){ projects[gi].status=val; renderAll(); if(sel)renderDrill(false); }
+function toggleCard(el){ const gi=cardGi(el); const p=projects[gi]; const cur=cardOpen[gi]!==undefined?cardOpen[gi]:(p.status==='in-progress'||p.status==='idea'); cardOpen[gi]=!cur; reProjects(); }
+function requireUser(){ if(!currentUser){ const w=document.getElementById('whoami'); w.focus(); w.style.boxShadow='0 0 0 3px rgba(224,66,66,.4)'; setTimeout(()=>w.style.boxShadow='',1200); return false; } return true; }
+function postComment(el){ const c=cardOf(el), gi=+c.dataset.gi, inp=c.querySelector('.noteinput'); const text=(inp.value||'').trim(); if(!text)return; if(!requireUser())return;
+  const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'}); (projects[gi].comments=projects[gi].comments||[]).push({by:currentUser,text,at:today}); reProjects(); renderMatrix(); renderBoss(); }
+function toggleAction(el){ const gi=cardGi(el), ai=+el.dataset.ai; projects[gi].actions[ai].done=el.checked; reProjects(); }
+function addAction(el){ const c=cardOf(el), gi=+c.dataset.gi, inp=c.querySelector('.actioninput'); const t=(inp.value||'').trim(); if(!t)return; (projects[gi].actions=projects[gi].actions||[]).push({text:t,done:false}); reProjects(); }
+function addAttachment(el){ const c=cardOf(el), gi=+c.dataset.gi; const t=c.querySelector('.ax').value, nm=(c.querySelector('.al').value||'').trim(), url=(c.querySelector('.au').value||'').trim();
+  if(!nm&&!url)return; (projects[gi].attachments=projects[gi].attachments||[]).push({type:t,name:nm||url,url:url||'#'}); reProjects(); }
+function addPhoto(input){ const gi=cardGi(input); const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ (projects[gi].attachments=projects[gi].attachments||[]).push({type:'photo',name:f.name,url:e.target.result}); reProjects(); }; r.readAsDataURL(f); }
+function removeAttachment(el,xi){ const gi=cardGi(el); projects[gi].attachments.splice(xi,1); reProjects(); }
+function renderProjList(){
+  const order={'in-progress':0,'idea':1,'live':2,'delivered':3};
+  const ps=projects.filter(passesFilter).sort((a,b)=>(order[a.status]??9)-(order[b.status]??9));
+  document.getElementById('projListWrap').innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${ps.map((p,i)=>deckCard(p,i)).join('')||'<div style="color:var(--ink-2);font-size:13px;padding:6px 2px">No projects.</div>'}</div>`;
+}
+
+function passesFilter(p){ if(filter.type==='all')return true; if(filter.type==='dept')return p.dept===filter.value; if(filter.type==='status')return p.status===filter.value; return true; }
+function renderBoard(){
+  let h='';
+  STATUSES.slice().reverse().forEach(s=>{
+    const items=projects.filter(p=>p.status===s.id&&passesFilter(p));
+    h+=`<div class="col"><div class="col-head"><span class="sd" style="background:${s.color}"></span>${s.label}<span class="cnt">${items.length}</span></div>`;
+    items.forEach(p=>{ const gi=projects.indexOf(p),d=deptById[p.dept];
+      h+=`<div class="card" onclick="if(event.target.closest('.editbtn'))return; this.classList.toggle('open')">
+        <div class="ct"><span class="cd" style="background:${d.color}"></span>${p.name}</div>
+        <div class="cmeta"><span>${d.name}</span>${p.date?`<span>· ${fmt(p.date)}</span>`:''}${(p.actions||[]).length?`<span>✅ ${(p.actions||[]).filter(a=>a.done).length}/${p.actions.length}</span>`:''}${(p.attachments||[]).length?`<span>📎 ${p.attachments.length}</span>`:''}<span class="tech-only">· ${p.tech.length} tech</span>${nComments(p)?`<span class="cbadge">📝 ${nComments(p)}</span>`:''}</div>
+        <div class="cbody"><div class="txt">${p.simple}</div>
+          ${p.detail?`<div class="txt tech-only" style="margin-top:7px;color:var(--muted)">${p.detail}</div>`:''}
+          ${p.impact?`<div class="impact"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M13 4L6 12l-3-3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${p.impact}</span></div>`:''}
+          <div class="chips tech-only">${p.tech.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+          <div style="margin-top:10px"><button class="editbtn" onclick="openEdit(${gi})">✎ Edit / update</button></div>
+        </div></div>`;
+    });
+    if(!items.length)h+=`<div style="font-size:12px;color:var(--muted);padding:6px 2px">—</div>`;
+    h+=`</div>`;
+  });
+  board.innerHTML=h;
+}
+
+function renderTech(){
+  const freq={}; projects.forEach(p=>p.tech.forEach(t=>freq[t]=(freq[t]||0)+1));
+  const rows=Object.entries(freq).sort((a,b)=>b[1]-a[1]); const max=Math.max(...rows.map(r=>r[1]),1);
+  techFreq.innerHTML=rows.map(([t,n])=>`<div class="tf"><div class="n" title="${t}">${t}</div><div class="track"><div class="fill" data-w="${Math.round(n/max*100)}"></div></div><div class="c">${n}</div></div>`).join('');
+  requestAnimationFrame(()=>techFreq.querySelectorAll('.fill').forEach(f=>f.style.width=f.dataset.w+'%'));
+}
+function renderTimeline(){
+  const evs=[...projects].filter(p=>p.date).sort((a,b)=>a.date.localeCompare(b.date));
+  timeline.innerHTML=evs.map(p=>{ const d=deptById[p.dept]; return `<div class="tstep"><div class="node" style="--tlc:${d.color}"></div><div class="d">${fmt(p.date)}</div><div class="tt">${p.name.split('—')[0]}</div></div>`;}).join('');
+}
+
+function renderProjTable(){
+  const rows=projects.map((p,i)=>({p,i})).filter(({p})=>passesFilter(p));
+  let h=`<thead><tr><th>Project</th><th>Department</th><th>Area(s)</th><th>Status</th><th>Date</th><th>Target</th><th>Progress</th><th>Impact</th><th>Tech</th><th>📎</th><th>📝</th><th></th></tr></thead><tbody>`;
+  h+=rows.map(({p,i})=>{ const d=deptById[p.dept]; const acts=(p.actions||[]); const done=acts.filter(a=>a.done).length;
+    const stsel=STATUSES.map(o=>`<option value="${o.id}" ${o.id===p.status?'selected':''}>${o.label}</option>`).join('');
+    return `<tr>
+      <td style="font-weight:700;min-width:180px">${esc(p.name)}</td>
+      <td style="white-space:nowrap"><span class="deptdot" style="background:${d?d.color:'#ccc'}"></span>${d?d.name:'—'}</td>
+      <td>${(p.areas||[]).join(', ')}</td>
+      <td><select onchange="setStatus(${i},this.value)">${stsel}</select></td>
+      <td style="white-space:nowrap">${p.date?fmt(p.date):''}</td>
+      <td>${esc(p.target||'')}</td>
+      <td style="white-space:nowrap;text-align:center">${acts.length?done+'/'+acts.length:'—'}</td>
+      <td>${esc(p.impact||'')}</td>
+      <td>${(p.tech||[]).join(', ')}</td>
+      <td style="text-align:center">${(p.attachments||[]).length||''}</td>
+      <td style="text-align:center">${(p.comments||[]).length||''}</td>
+      <td><button class="editbtn" onclick="openEdit(${i})">✎</button></td></tr>`;
+  }).join('')||`<tr><td colspan="12" style="color:var(--muted)">No projects.</td></tr>`;
+  document.getElementById('projGrid').innerHTML=h+`</tbody>`;
+}
+function renderAll(){ renderKPIs(); renderBoss(); renderFilters(); renderMatrix(); renderBoard(); renderProjList(); renderProjTable(); renderTech(); renderTimeline(); if(sel)renderDrill(false); }
+renderAll();
+document.getElementById('today').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+const whoami=document.getElementById('whoami');
+whoami.addEventListener('input',()=>{ currentUser=whoami.value.trim(); if(sel)renderDrill(false); });
+
+viewSeg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  viewSeg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const det=b.dataset.v==='detailed'; document.body.classList.toggle('detailed',det); document.body.classList.toggle('simple',!det);
+  document.getElementById('viewNote').textContent=det?'Same view — open a line to also see the stack & technical detail':'Open any line to see the detail';
+  reProjects();
+});
+
+/* ADD / EDIT MODAL */
+const overlay=document.getElementById('overlay');
+document.getElementById('f_dept').innerHTML=departments.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+function buildAreaChecks(){ document.getElementById('f_areas').innerHTML=AREAS.map(a=>`<label><input type="checkbox" value="${esc(a)}"><span>${esc(a)}</span></label>`).join('')+`<button type="button" class="btn sm" style="margin-left:4px" onclick="addArea()">＋ Add area</button>`; }
+buildAreaChecks();
+function addArea(){ const n=(prompt('New area of contribution:')||'').trim(); if(!n)return; const cur=[...document.querySelectorAll('#f_areas input:checked')].map(x=>x.value); if(!AREAS.includes(n))AREAS.push(n); cur.push(n); buildAreaChecks(); document.querySelectorAll('#f_areas input').forEach(x=>x.checked=cur.includes(x.value)); renderAll(); }
+const gv=id=>document.getElementById(id);
+function fillForm(p){ gv('f_name').value=p.name||''; gv('f_dept').value=p.dept||departments[0].id; gv('f_status').value=p.status||'delivered';
+  gv('f_date').value=p.date||''; gv('f_simple').value=p.simple||''; gv('f_detail').value=p.detail||''; gv('f_components').value=p.components||''; gv('f_impact').value=p.impact||''; gv('f_target').value=p.target||''; gv('f_tech').value=(p.tech||[]).join(', ');
+  document.querySelectorAll('#f_areas input').forEach(x=>x.checked=(p.areas||[]).includes(x.value)); }
+function openAdd(){ editing=null; fillForm({}); gv('modalTitle').textContent='Add a project'; gv('saveBtn').textContent='Add to board'; gv('delBtn').style.display='none'; gv('genOut').style.display='none'; overlay.classList.add('show'); }
+function openEdit(gi){ editing=gi; fillForm(projects[gi]); gv('modalTitle').textContent='Edit / update project'; gv('saveBtn').textContent='Save changes'; gv('delBtn').style.display='inline-flex'; gv('genOut').style.display='none'; overlay.classList.add('show'); }
+gv('addBtn').onclick=openAdd;
+const closeModal=()=>{overlay.classList.remove('show'); gv('genOut').style.display='none';};
+gv('closeX').onclick=closeModal; gv('cancelBtn').onclick=closeModal; overlay.onclick=e=>{ if(e.target===overlay)closeModal(); };
+gv('saveBtn').onclick=()=>{
+  const g=id=>gv(id).value.trim(); const areas=[...document.querySelectorAll('#f_areas input:checked')].map(x=>x.value);
+  const obj={name:g('f_name')||'Untitled project',dept:g('f_dept'),status:g('f_status'),date:g('f_date'),areas:areas.length?areas:[AREAS[0]],simple:g('f_simple'),detail:g('f_detail'),components:g('f_components'),impact:g('f_impact'),target:g('f_target'),tech:g('f_tech').split(',').map(s=>s.trim()).filter(Boolean)};
+  if(!obj.tech.length)obj.tech=['—'];
+  if(editing!==null){ const o=projects[editing]; obj.comments=o.comments||[]; obj.actions=o.actions||[]; obj.attachments=o.attachments||[]; projects[editing]=obj; } else { obj.comments=[]; obj.actions=[]; obj.attachments=[]; projects.push(obj); }
+  renderAll();
+  gv('genText').value='  '+JSON.stringify(obj)+',';
+  gv('genOut').style.display='block';
+};
+gv('delBtn').onclick=()=>{ if(editing===null)return; if(!confirm('Delete this project?'))return; projects.splice(editing,1); editing=null; sel=null; renderAll(); document.getElementById(drillHost).className='drillpanel'; closeModal(); };
+gv('copyBtn').onclick=()=>{const t=gv('genText'); t.select(); document.execCommand('copy'); gv('copyBtn').textContent='Copied ✓';};
+
+/* UPDATE LOG */
+const cover=document.getElementById('cover');
+gv('exportCmt').onclick=()=>{
+  const lines=[]; projects.forEach(p=>{ if(nComments(p)){ lines.push('▼ '+p.name); p.comments.forEach(c=>lines.push(`   • ${c.by} (${c.at||''}): ${c.text}`)); lines.push(''); } });
+  gv('cmtText').value=lines.length?lines.join('\n'):'No update notes yet.'; cover.classList.add('show');
+};
+gv('cCloseX').onclick=()=>cover.classList.remove('show'); cover.onclick=e=>{ if(e.target===cover)cover.classList.remove('show'); };
+gv('cCopyBtn').onclick=()=>{const t=gv('cmtText'); t.select(); document.execCommand('copy'); gv('cCopyBtn').textContent='Copied ✓';};
+
+/* ================= DOWNLOAD REPORTS ================= */
+const orgName=()=>document.querySelector('.org-name').textContent.trim();
+function reportHead(scopeLabel){
+  return `<header class="top"><div><div class="eyebrow">${scopeLabel}</div><h1>Contribution &amp; <span class="accent">Impact</span> Tracker</h1>
+    <div class="org-line">Organization: ${esc(orgName())}</div></div>
+    <div class="who"><div><div class="name" style="text-align:right">Adriele</div><div class="role">Quality &amp; Development · BL3914 · ${fmt(new Date().toISOString().slice(0,10))}</div></div><div class="avatar">A</div></div></header>`;
+}
+function projectCardStatic(p,idx){
+  const dp=deptById[p.dept],s=statusById[p.status];
+  const cmts=(p.comments||[]).map(c=>`<div class="cmt"><div class="who">${esc(c.by)||'Someone'}<span>${esc(c.at||'')}</span></div><div class="tx">${esc(c.text)}</div></div>`).join('');
+  const acts=(p.actions||[]); const done=acts.filter(a=>a.done).length;
+  const actsHtml=acts.map(a=>`<div class="act ${a.done?'done':''}"><span>${a.done?'☑':'☐'}</span><label>${esc(a.text)}</label></div>`).join('');
+  const attHtml=(p.attachments||[]).map(at=>`<span class="attchip">${attIcon(at.type)} ${esc(at.name)}</span>`).join('');
+  const raw=(p.impact||p.simple||''); const sum=raw?'— '+esc(raw.slice(0,70))+(raw.length>70?'…':''):'';
+  const open=(idx===0)?' open':'';
+  return `<details class="dcard rdet st-${p.status}"${open}>
+    <summary><span class="stpill" style="background:${s.color}">${s.label}</span><b class="htitle">${esc(p.name)}</b><span class="hsum">${sum}</span><span style="flex:1;min-width:8px"></span>${p.target?`<span class="deadline">🎯 ${esc(p.target.slice(0,44))}${p.target.length>44?'…':''}</span>`:''}${acts.length?`<span class="hprog">✅ ${done}/${acts.length}</span>`:''}<span class="chev">›</span></summary>
+    <div class="rbody">
+      <div style="font-size:11.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">${dp.name}${p.date?' · '+fmt(p.date):''}</div>
+      ${p.target?`<div class="dtxt" style="margin-bottom:6px"><b style="color:#7a6410">🎯 Target:</b> ${esc(p.target)}</div>`:''}
+      <div class="dtxt">${p.simple||''}</div>
+      ${p.impact?`<div class="dimpact">✓ ${p.impact}</div>`:''}
+      <div class="blk" style="margin-top:11px"><div class="bh">🛠 Technical detail</div>
+        ${techUL(p)}
+        ${p.components?`<div class="dtxt" style="margin-top:5px"><b>Key components:</b> <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px">${esc(p.components)}</span></div>`:''}
+        <div class="dchips" style="margin-top:8px">${(p.tech||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div></div>
+      <div class="blk" style="margin-top:11px"><div class="bh">✅ Actions &amp; completed <span class="prog">${done}/${acts.length}</span></div>${actsHtml||'<div style="font-size:12px;color:var(--ink-2)">—</div>'}</div>
+      ${attHtml?`<div class="blk" style="margin-top:12px"><div class="bh">📎 Attachments</div><div class="att">${attHtml}</div></div>`:''}
+      ${cmts?`<div class="cmts"><div class="chead">📝 Update notes</div>${cmts}</div>`:''}
+    </div></details>`;
+}
+function detailsGroup(title,ps){ return `<h2 style="font-size:15px;margin:22px 0 10px">${title}</h2><div style="display:flex;flex-direction:column;gap:12px">${ps.map((p,i)=>projectCardStatic(p,i)).join('')||'<div style="color:var(--muted)">—</div>'}</div>`; }
+
+function buildManagerBody(){
+  let h=document.querySelector('.boss').cloneNode(true); h.querySelector('#drillManager')?.remove(); h.querySelector('.reportbtn')?.remove();
+  let details=''; AREAS.forEach(a=>{ const ps=projects.filter(p=>(p.areas||[]).includes(a)); details+=detailsGroup(a,ps); });
+  return `<section>${h.outerHTML}</section><section>${details}</section>`;
+}
+function buildGlanceBody(){
+  const m=`<div class="matrix-card">${document.getElementById('matrix').innerHTML}</div>`;
+  let details=''; departments.forEach(d=>{ const ps=projects.filter(p=>p.dept===d.id); details+=detailsGroup(d.name,ps); });
+  return `<section><div class="sec-head"><h2>At a glance</h2></div>${m}</section><section>${details}</section>`;
+}
+function buildFullBody(){
+  const kpi=`<div class="kpis">${document.getElementById('kpis').innerHTML}</div>`;
+  let boss=document.querySelector('.boss').cloneNode(true); boss.querySelector('#drillManager')?.remove(); boss.querySelector('.reportbtn')?.remove();
+  const matrix=`<section><div class="sec-head"><h2>At a glance</h2></div><div class="matrix-card">${document.getElementById('matrix').innerHTML}</div></section>`;
+  const order={'in-progress':0,'idea':1,'live':2,'delivered':3};
+  const ps=projects.slice().sort((a,b)=>(order[a.status]??9)-(order[b.status]??9));
+  return kpi+`<section>${boss.outerHTML}</section>`+matrix+`<section>${detailsGroup('All projects — full detail', ps)}</section>`;
+}
+function downloadReport(scope){
+  const style=document.getElementById('mainStyle').innerHTML;
+  const labels={manager:'Report · For my manager',glance:'Report · At a glance',full:'Full technical report — all projects, stack & detail (for developers)'};
+  const body=scope==='manager'?buildManagerBody():scope==='glance'?buildGlanceBody():buildFullBody();
+  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${labels[scope]} — Adriele</title><style>${style}</style></head>
+    <body class="report simple"><div class="wrap">${reportHead(labels[scope])}${body}
+    <footer><div>Contribution &amp; Impact Tracker · ${esc(orgName())}</div><div>Generated ${fmt(new Date().toISOString().slice(0,10))}</div></footer></div></body></html>`;
+  const blob=new Blob([html],{type:'text/html'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`Tracker_${scope}_report.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+gv('dlManager').onclick=()=>downloadReport('manager');
+gv('dlGlance').onclick=()=>downloadReport('glance');
+gv('dlFull').onclick=()=>downloadReport('full');
+
+/* open a report in a new browser tab */
+function openReportTab(scope){
+  const style=document.getElementById('mainStyle').innerHTML;
+  const labels={manager:'Report · For my manager',glance:'Report · At a glance',full:'Full technical report — all projects, stack & detail (for developers)'};
+  const body=scope==='manager'?buildManagerBody():scope==='glance'?buildGlanceBody():buildFullBody();
+  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${labels[scope]} — Adriele</title><style>${style}</style></head><body class="report simple"><div class="wrap">${reportHead(labels[scope])}${body}<footer><div>Contribution &amp; Impact Tracker · ${esc(orgName())}</div><div>Generated ${fmt(new Date().toISOString().slice(0,10))}</div></footer></div></body></html>`;
+  const w=window.open('','_blank'); if(w){ w.document.open(); w.document.write(html); w.document.close(); } else { downloadReport(scope); }
+}
+gv('openManager').onclick=()=>openReportTab('full');
+
+/* ================= SHEETS: activities + timesheet + tabs ================= */
+let activities=[
+  {date:'2026-07-22',dept:'quality',person:'Adriele',supporter:'',text:'Trained colleagues on new MSL label handling',impact:'Team can now scan MSL labels independently'},
+  {date:'2026-07-21',dept:'logistics',person:'Adriele',supporter:'Warehouse team',text:'Received & sorted Vegas loose-items shipment',impact:'Shipment ready for verification same day'},
+  {date:'2026-07-20',dept:'production',person:'Adriele',supporter:'',text:'Weekly production sync + flow-map review',impact:'Flow map priorities aligned for the week'},
+];
+let timesheet=[
+  {date:'2026-07-21',in:'08:00',lo:'12:00',li:'12:45',out:'17:00',note:'',doc:null},
+  {date:'2026-07-22',in:'09:30',lo:'12:15',li:'13:00',out:'17:15',note:'Doctor appointment in the morning',doc:null},
+];
+const deptOptions=sel=>departments.map(d=>`<option value="${d.id}" ${sel===d.id?'selected':''}>${d.name}</option>`).join('');
+
+/* tab switching */
+const tabsEl=document.getElementById('tabs');
+tabsEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  tabsEl.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+b.dataset.tab).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* activities */
+gv('a_dept').innerHTML=deptOptions();
+gv('actFilterDept').innerHTML='<option value="">All departments</option>'+deptOptions();
+function renderActivities(){
+  const fd=gv('actFilterDept').value, fp=(gv('actFilterPerson').value||'').toLowerCase();
+  const rows=activities.map((a,i)=>({a,i})).filter(({a})=>(!fd||a.dept===fd)&&(!fp||(a.person||'').toLowerCase().includes(fp))).sort((x,y)=>(y.a.date||'').localeCompare(x.a.date||''));
+  let h=`<thead><tr><th>Date</th><th>Department</th><th>Person</th><th>Supporter</th><th>Activity</th><th>Impact</th><th></th></tr></thead><tbody>`;
+  h+=rows.map(({a,i})=>{ const d=deptById[a.dept];
+    return `<tr><td style="white-space:nowrap">${fmt(a.date)}</td><td style="white-space:nowrap"><span class="deptdot" style="background:${d?d.color:'#ccc'}"></span>${d?d.name:'—'}</td><td>${esc(a.person||'')}</td><td>${esc(a.supporter||'')}</td><td>${esc(a.text||'')}</td><td>${esc(a.impact||'')}</td><td><button class="trm" title="Delete" onclick="delActivity(${i})">×</button></td></tr>`;
+  }).join('')||`<tr><td colspan="7" style="color:var(--muted)">No activities yet — add one.</td></tr>`;
+  gv('actTable').innerHTML=h+`</tbody>`;
+}
+function delActivity(i){ if(!confirm('Delete this activity?'))return; activities.splice(i,1); renderActivities(); }
+const actOverlay=gv('actOverlay');
+function openActivity(){ gv('actTitle').textContent='Add activity'; gv('a_date').value=new Date().toISOString().slice(0,10); gv('a_dept').value=departments[0].id; gv('a_person').value=currentUser||'Adriele'; gv('a_supporter').value=''; gv('a_text').value=''; gv('a_impact').value=''; actOverlay.classList.add('show'); }
+gv('addActBtn').onclick=openActivity; gv('addActBtn2').onclick=openActivity;
+gv('actCancel').onclick=()=>actOverlay.classList.remove('show'); gv('actCloseX').onclick=()=>actOverlay.classList.remove('show');
+actOverlay.onclick=e=>{ if(e.target===actOverlay)actOverlay.classList.remove('show'); };
+gv('aSave').onclick=()=>{ const o={date:gv('a_date').value,dept:gv('a_dept').value,person:gv('a_person').value.trim(),supporter:gv('a_supporter').value.trim(),text:gv('a_text').value.trim(),impact:gv('a_impact').value.trim()};
+  if(!o.text){ alert('Add an activity description.'); return; } activities.push(o); renderActivities(); actOverlay.classList.remove('show'); };
+gv('actFilterDept').onchange=renderActivities; gv('actFilterPerson').oninput=renderActivities;
+
+function csvDownload(name,rows){ const csv=rows.map(r=>r.map(c=>{ c=(c==null?'':String(c)); return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(',')).join('\n'); const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+gv('dlAct').onclick=()=>{ const fd=gv('actFilterDept').value, fp=(gv('actFilterPerson').value||'').toLowerCase();
+  const rows=[['Date','Department','Person','Supporter','Activity','Impact']];
+  activities.filter(a=>(!fd||a.dept===fd)&&(!fp||(a.person||'').toLowerCase().includes(fp))).sort((x,y)=>(x.date||'').localeCompare(y.date||'')).forEach(a=>rows.push([a.date,(deptById[a.dept]||{}).name||'',a.person||'',a.supporter||'',a.text||'',a.impact||'']));
+  csvDownload('activities.csv',rows); };
+
+/* timesheet */
+const toMin=t=>{ if(!t)return null; const [h,m]=t.split(':').map(Number); return h*60+m; };
+const worked=r=>{ const i=toMin(r.in),o=toMin(r.out); if(i==null||o==null)return null; let w=o-i; const lo=toMin(r.lo),li=toMin(r.li); if(lo!=null&&li!=null&&li>lo)w-=(li-lo); return w>0?w:0; };
+const hm=m=>{ if(m==null)return '—'; return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0'); };
+function tsFiltered(){ const mo=gv('tsMonth').value,f=gv('tsFrom').value,t=gv('tsTo').value;
+  return timesheet.map((r,i)=>({r,i})).filter(({r})=>{ if(mo&&(r.date||'').slice(0,7)!==mo)return false; if(f&&(r.date||'')<f)return false; if(t&&(r.date||'')>t)return false; return true; }).sort((a,b)=>(a.r.date||'').localeCompare(b.r.date||'')); }
+function renderTimesheet(){
+  const months=[...new Set(timesheet.map(r=>(r.date||'').slice(0,7)).filter(Boolean))].sort(); const cur=gv('tsMonth').value;
+  gv('tsMonth').innerHTML='<option value="">All</option>'+months.map(m=>`<option value="${m}" ${m===cur?'selected':''}>${m}</option>`).join('');
+  const rows=tsFiltered(); let total=0;
+  let h=`<thead><tr><th>Date</th><th>Clock in</th><th>Lunch out</th><th>Lunch in</th><th>Clock out</th><th>Worked</th><th>Note</th><th>Document</th><th></th></tr></thead><tbody>`;
+  h+=rows.map(({r,i})=>{ const w=worked(r); if(w!=null)total+=w;
+    const doc=r.doc?`<a class="attchip" href="${esc(r.doc.url)}" ${r.doc.url&&r.doc.url!=='#'?'target="_blank" rel="noopener"':''}>📄 ${esc(r.doc.name)}</a> <button class="trm" title="Remove" onclick="tsDelDoc(${i})">×</button>`
+      :`<button class="btn sm" onclick="document.getElementById('tsf_${i}').click()">📎 Add</button><input type="file" id="tsf_${i}" style="display:none" onchange="tsDoc(${i},this)">`;
+    return `<tr><td><input type="date" value="${r.date||''}" onchange="tsSet(${i},'date',this.value)"></td>
+      <td><input type="time" value="${r.in||''}" onchange="tsSet(${i},'in',this.value)"></td>
+      <td><input type="time" value="${r.lo||''}" onchange="tsSet(${i},'lo',this.value)"></td>
+      <td><input type="time" value="${r.li||''}" onchange="tsSet(${i},'li',this.value)"></td>
+      <td><input type="time" value="${r.out||''}" onchange="tsSet(${i},'out',this.value)"></td>
+      <td class="tsum">${hm(w)}</td>
+      <td><input value="${esc(r.note||'')}" placeholder="e.g. Doctor appt" onchange="tsSet(${i},'note',this.value)" style="min-width:150px"></td>
+      <td style="white-space:nowrap">${doc}</td>
+      <td><button class="trm" onclick="tsDel(${i})">×</button></td></tr>`;
+  }).join('')||`<tr><td colspan="9" style="color:var(--muted)">No entries in this range — add a day.</td></tr>`;
+  gv('tsTable').innerHTML=h+`</tbody><tfoot><tr><td colspan="5">Total worked</td><td class="tsum">${hm(total)}</td><td colspan="3"></td></tr></tfoot>`;
+}
+function tsDoc(i,input){ const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ timesheet[i].doc={name:f.name,url:e.target.result}; renderTimesheet(); }; r.readAsDataURL(f); }
+function tsDelDoc(i){ timesheet[i].doc=null; renderTimesheet(); }
+function tsSet(i,k,v){ timesheet[i][k]=v; renderTimesheet(); }
+function tsDel(i){ timesheet.splice(i,1); renderTimesheet(); }
+gv('tsAdd').onclick=()=>{ timesheet.push({date:new Date().toISOString().slice(0,10),in:'',lo:'',li:'',out:''}); renderTimesheet(); };
+['tsMonth','tsFrom','tsTo'].forEach(id=>{ gv(id).addEventListener('change',renderTimesheet); });
+gv('dlTs').onclick=()=>{ const who=gv('tsWho').value.trim();
+  const rows=[['Date','Clock in','Lunch out','Lunch in','Clock out','Worked (h:m)','Worked (min)','Note','Document']]; let total=0;
+  tsFiltered().forEach(({r})=>{ const w=worked(r); if(w!=null)total+=w; rows.push([r.date,r.in,r.lo,r.li,r.out,hm(w),w==null?'':w,r.note||'',(r.doc||{}).name||'']); });
+  rows.push([]); rows.push(['Total','','','','','',total,'','']);
+  const label=gv('tsMonth').value||((gv('tsFrom').value||'start')+'_'+(gv('tsTo').value||'end'));
+  csvDownload(`timesheet_${who?who+'_':''}${label}.csv`,rows); };
+
+renderActivities(); renderTimesheet();
+
+/* Cards / Table toggle for projects */
+const boardView=document.getElementById('boardView');
+boardView.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  boardView.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const v=b.dataset.b;
+  gv('projListWrap').style.display=v==='list'?'block':'none';
+  gv('board').style.display=v==='cards'?'grid':'none';
+  gv('projGridWrap').style.display=v==='table'?'block':'none';
+  if(v==='list')renderProjList(); if(v==='table')renderProjTable();
+});
+
+/* ================= REAL EXCEL (.xlsx) EXPORT ================= */
+function projectsAOA(){
+  const head=['Project','Department','Area(s)','Status','Date','Target','Actions done','Actions total','Actions','Impact','Technical detail','Key components','Technologies','Attachments','Update notes'];
+  const rows=projects.map(p=>{ const acts=(p.actions||[]); const done=acts.filter(a=>a.done).length;
+    return [p.name,(deptById[p.dept]||{}).name||'',(p.areas||[]).join('; '),(statusById[p.status]||{}).label||p.status,p.date||'',p.target||'',done,acts.length,
+      acts.map(a=>(a.done?'[x] ':'[ ] ')+a.text).join('; '),p.impact||'',(p.detail||'').replace(/\n/g,' • '),p.components||'',(p.tech||[]).join(', '),(p.attachments||[]).map(a=>a.name).join('; '),
+      (p.comments||[]).map(c=>`${c.by} (${c.at||''}): ${c.text}`).join('  |  ')];
+  });
+  return [head,...rows];
+}
+function activitiesAOA(){ const head=['Date','Department','Person','Supporter','Activity','Impact'];
+  return [head,...activities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(a=>[a.date,(deptById[a.dept]||{}).name||'',a.person||'',a.supporter||'',a.text||'',a.impact||''])]; }
+function timesheetAOA(){ const head=['Date','Clock in','Lunch out','Lunch in','Clock out','Worked (h:m)','Worked (min)','Note','Document']; let total=0;
+  const rows=timesheet.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>{const w=worked(r); if(w!=null)total+=w; return [r.date,r.in,r.lo,r.li,r.out,hm(w),w==null?'':w,r.note||'',(r.doc||{}).name||''];});
+  rows.push(['Total','','','','','',total,'','']); return [head,...rows]; }
+function autoCols(aoa){ return aoa[0].map((_,c)=>({wch:Math.min(60,Math.max(10,...aoa.map(r=>String(r[c]==null?'':r[c]).length)))})); }
+function downloadExcel(){
+  if(window.XLSX){
+    const wb=XLSX.utils.book_new();
+    [['Projects',projectsAOA()],['Activities',activitiesAOA()],['Timesheet',timesheetAOA()]].forEach(([nm,aoa])=>{
+      const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=autoCols(aoa); XLSX.utils.book_append_sheet(wb,ws,nm);
+    });
+    XLSX.writeFile(wb,'Contribution_Tracker.xlsx');
+  } else {
+    csvDownload('projects.csv',projectsAOA());
+    alert('Saved Projects as CSV. The full 3-tab .xlsx needs an internet connection (Excel library) — once the tracker is hosted this always works.');
+  }
+}
+gv('dlXlsx').onclick=downloadExcel;
+</script>
+</body>
+</html>
