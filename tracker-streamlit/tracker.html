@@ -185,6 +185,20 @@
   .cal-cell.today{border-color:var(--quality);box-shadow:0 0 0 1px var(--quality);}
   .cal-cell .dn{font-size:11.5px;font-weight:800;color:var(--ink-2);}
   .ag-chip{font-size:10.5px;color:#fff;border-radius:5px;padding:1px 6px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5;}
+  /* time grid (week/day) */
+  .tg-head{display:grid;grid-template-columns:56px repeat(var(--cols),1fr);}
+  .tg-dayhead{font-size:12px;font-weight:800;color:var(--ink-2);text-align:center;padding:6px 0;}
+  .tg-dayhead.today{color:var(--quality);}
+  .tg-body{display:grid;grid-template-columns:56px repeat(var(--cols),1fr);background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;user-select:none;}
+  .tg-hr{height:38px;font-size:10.5px;color:var(--muted);text-align:right;padding-right:6px;border-top:1px solid var(--grid);box-sizing:border-box;}
+  .tg-col{position:relative;border-left:1px solid var(--grid);}
+  .tg-slot{height:38px;border-top:1px solid var(--grid);box-sizing:border-box;cursor:pointer;}
+  .tg-slot:hover{background:#eef4ff;}
+  .tg-slot.sel,.tg-slot.selrange{background:#cfe0fb;}
+  .tg-ev{position:absolute;left:3px;right:3px;color:#fff;border-radius:6px;padding:2px 6px;font-size:10.5px;line-height:1.25;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.18);z-index:2;}
+  .tg-ev b{font-weight:800;}
+  .ag-selbar{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;margin:12px 0;font-size:13px;}
+  .ag-selbar .btn{background:#fff;color:var(--ink);border-color:#fff;}
   .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
   .cal-wcol{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:130px;}
   .cal-wcol.today{border-color:var(--quality);}
@@ -438,15 +452,17 @@
   <div class="pane" id="pane-agenda">
     <div class="sec-head"><h2>Agenda</h2><span class="hint">what you plan to do · each entry links to a project &amp; (optionally) an activity · planned hours summarised below</span></div>
     <div class="toolbar">
-      <div class="seg" id="agView"><button data-v="day">Day</button><button data-v="week">Week</button><button data-v="month" class="on">Month</button></div>
+      <div class="seg" id="agView"><button data-v="day">Day</button><button data-v="week" class="on">Week</button><button data-v="month">Month</button></div>
       <button class="btn sm" id="agPrev" title="Previous">‹</button>
       <button class="btn sm" id="agToday">Today</button>
       <button class="btn sm" id="agNext" title="Next">›</button>
       <span id="agLabel" style="font-weight:800;font-size:14px;margin-left:4px"></span>
       <span class="grow"></span>
+      <span class="hint" style="align-self:center">drag over the hours to plan</span>
       <button class="btn primary" id="agAdd">＋ Add entry</button>
     </div>
     <div id="agCal"></div>
+    <div id="agSelBar"></div>
     <div class="sec-head" style="margin-top:24px"><h2>Planned hours</h2><span class="hint">from your agenda, for the period shown above</span></div>
     <div class="sheet-card" id="agSummary" style="padding:16px 20px"></div>
   </div>
@@ -496,6 +512,21 @@
     <p class="help">Every update note logged so far. Copy to share or keep — notes live in the page for now; once the tracker is hosted online they'll be shared automatically.</p>
     <div id="cmtOut" style="display:block"><textarea id="cmtText" readonly onclick="this.select()"></textarea>
       <button class="btn" id="cCopyBtn" style="margin-top:8px">Copy update log</button></div>
+  </div>
+</div>
+
+<!-- AGENDA SELECTION MODAL (from dragging the calendar) -->
+<div class="overlay" id="agSelOverlay">
+  <div class="modal">
+    <button class="close-x" id="agSelClose">×</button>
+    <h3>Plan the selected time</h3>
+    <p class="help" id="agSelWhen"></p>
+    <div class="field"><label>What are you doing?</label><input id="ags_title" placeholder="e.g. Improve the error logging"></div>
+    <div class="field"><label>Project</label>
+      <div style="display:flex;gap:8px"><select id="ags_proj" style="flex:1"></select><button class="btn" id="agsNewProj" type="button" title="Create a new project">＋ New project</button></div></div>
+    <div class="field"><label>Activity (optional)</label><select id="ags_act"></select></div>
+    <div class="field"><label>Note (optional)</label><input id="ags_note" placeholder="details"></div>
+    <div class="modal-actions"><button class="btn" id="agsCancel">Cancel</button><button class="btn primary" id="agsSave">Add to agenda</button></div>
   </div>
 </div>
 
@@ -1067,7 +1098,7 @@ const deptOptions=sel=>departments.map(d=>`<option value="${d.id}" ${sel===d.id?
 /* agenda (planned work) + v2 improvement ideas */
 let agenda=[];        // {id,title,date,start,end,projectId,activityId,note}
 let improvements=[];  // {id,text,projectId,at}
-let agAnchor=new Date(), agViewMode='month', agEditing=null;
+let agAnchor=new Date(), agViewMode='week', agEditing=null;
 
 /* tab switching */
 const tabsEl=document.getElementById('tabs');
@@ -1180,12 +1211,47 @@ function calMonth(){ const y=agAnchor.getFullYear(), m=agAnchor.getMonth(); cons
   for(let i=0;i<42;i++){ const d=new Date(gs); d.setDate(gs.getDate()+i); const ds=ymd(d); const other=d.getMonth()!==m; const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
     cells+=`<div class="cal-cell ${other?'other':''} ${ds===todayS?'today':''}" onclick="agAddOn('${ds}')"><div class="dn">${d.getDate()}</div>${ents.slice(0,4).map(e=>`<div class="ag-chip" style="background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')">${e.start?e.start+' ':''}${esc(e.title)}</div>`).join('')}${ents.length>4?`<div style="font-size:10px;color:var(--muted);margin-top:2px">+${ents.length-4} more</div>`:''}</div>`; }
   return `<div class="cal-dowrow">${dows.map(x=>`<div class="cal-dow">${x}</div>`).join('')}</div><div class="cal-month">${cells}</div>`; }
-function calWeek(){ const [mon]=agRange(); const todayS=ymd(new Date()); const dows=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let cols='';
-  for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); const ds=ymd(d); const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
-    cols+=`<div class="cal-wcol ${ds===todayS?'today':''}"><div class="wd">${dows[i]} ${d.getDate()}</div>${ents.map(e=>`<div class="ag-chip" style="background:${projColor(e.projectId)}" onclick="agEdit('${e.id}')">${e.start||''}–${e.end||''} ${esc(e.title)}</div>`).join('')||'<div style="font-size:11px;color:var(--muted)">—</div>'}<div style="margin-top:6px;text-align:center"><button class="btn sm" onclick="agAddOn('${ds}')">＋</button></div></div>`; }
-  return `<div class="cal-week">${cols}</div>`; }
-function calDay(){ const ds=ymd(agAnchor); const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
-  return `<div class="sheet-card" style="padding:14px 16px">${ents.map(e=>`<div class="ag-row" onclick="agEdit('${e.id}')"><span class="dot" style="background:${projColor(e.projectId)}"></span><span class="tm">${e.start||''}–${e.end||''}</span><span style="flex:1"><b>${esc(e.title)}</b><span class="meta"> · ${esc(projName(e.projectId))||'—'}${e.activityId?' · '+esc(actName(e.activityId)):''}</span></span><span class="meta">${dur(e).toFixed(1)}h</span></div>`).join('')||'<div style="color:var(--muted);font-size:13px">Nothing planned — click ＋ Add entry.</div>'}<div style="margin-top:8px"><button class="btn sm" onclick="agAddOn('${ds}')">＋ Add on this day</button></div></div>`; }
+const AG_START=7, AG_END=20, SLOT_H=38;   // grid runs 07:00–20:00, one row per hour
+let agSelSet=new Set(); let dragging=false, dragDay=null, dragFrom=0, dragTo=0, dragMoved=false;
+function weekDays(){ const [mon]=agRange(); const arr=[]; for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); arr.push(ymd(d)); } return arr; }
+function calWeek(){ return timeGrid(weekDays()); }
+function calDay(){ return timeGrid([ymd(agAnchor)]); }
+function timeGrid(days){
+  const hours=[]; for(let h=AG_START;h<AG_END;h++) hours.push(h);
+  const todayS=ymd(new Date());
+  const head=`<div class="tg-head" style="--cols:${days.length}"><div></div>${days.map(d=>`<div class="tg-dayhead ${d===todayS?'today':''}">${new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</div>`).join('')}</div>`;
+  const gutter=`<div>${hours.map(h=>`<div class="tg-hr">${String(h).padStart(2,'0')}:00</div>`).join('')}</div>`;
+  const cols=days.map(day=>{
+    const slots=hours.map((h,si)=>`<div class="tg-slot ${agSelSet.has(day+'|'+si)?'sel':''}" data-day="${day}" data-slot="${si}"></div>`).join('');
+    const evs=agenda.filter(e=>e.date===day).map(e=>{ const s=toMin(e.start),en=toMin(e.end); if(s==null||en==null)return''; const top=(s-AG_START*60)/60*SLOT_H; const hgt=Math.max(15,(en-s)/60*SLOT_H); return `<div class="tg-ev" style="top:${top}px;height:${hgt}px;background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')" title="${esc(e.title)}"><b>${e.start}</b> ${esc(e.title)}</div>`; }).join('');
+    return `<div class="tg-col" data-day="${day}"><div>${slots}</div>${evs}</div>`;
+  }).join('');
+  return head+`<div class="tg-body" style="--cols:${days.length}">${gutter}${cols}</div>`;
+}
+function agAttachGrid(){ document.querySelectorAll('#agCal .tg-slot').forEach(c=>{
+  c.onmousedown=ev=>{ ev.preventDefault(); dragging=true; dragDay=c.dataset.day; dragFrom=+c.dataset.slot; dragTo=dragFrom; dragMoved=false; paintDragRange(); };
+  c.onmouseenter=()=>{ if(dragging&&c.dataset.day===dragDay){ dragTo=+c.dataset.slot; dragMoved=true; paintDragRange(); } };
+}); }
+function paintDragRange(){ const a=Math.min(dragFrom,dragTo),b=Math.max(dragFrom,dragTo); document.querySelectorAll('#agCal .tg-col[data-day="'+dragDay+'"] .tg-slot').forEach(c=>{ const s=+c.dataset.slot; c.classList.toggle('selrange', s>=a&&s<=b); }); }
+function selectionRuns(){ const byDay={}; agSelSet.forEach(k=>{ const i=k.lastIndexOf('|'); const d=k.slice(0,i), s=+k.slice(i+1); (byDay[d]=byDay[d]||[]).push(s); });
+  const runs=[]; Object.keys(byDay).sort().forEach(d=>{ const arr=byDay[d].sort((x,y)=>x-y); let st=null,pv=null; arr.forEach(s=>{ if(st===null){st=s;pv=s;} else if(s===pv+1){pv=s;} else { runs.push({date:d,s:st,e:pv}); st=s;pv=s; } }); if(st!==null)runs.push({date:d,s:st,e:pv}); }); return runs; }
+const slotToTime=s=>String(AG_START+s).padStart(2,'0')+':00';
+function renderSelBar(){ const el=document.getElementById('agSelBar'); if(!el)return; if(agViewMode==='month'||!agSelSet.size){ el.innerHTML=''; return; } const runs=selectionRuns();
+  el.innerHTML=`<div class="ag-selbar"><span>⏱ <b>${agSelSet.size}h</b> selected · ${runs.length} block${runs.length!=1?'s':''}</span><span style="flex:1"></span><button class="btn" onclick="openAgSel()">＋ Add activity to these times</button><button class="btn" onclick="clearAgSel()">Clear</button></div>`; }
+function clearAgSel(){ agSelSet.clear(); renderAgenda(); }
+function fillAgsSelects(){ gv('ags_proj').innerHTML='<option value="">— none —</option>'+projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); gv('ags_act').innerHTML='<option value="">— none —</option>'+activities.map(a=>`<option value="${a.id}">${esc((a.text||'').slice(0,60))}</option>`).join(''); }
+function openAgSel(){ if(!agSelSet.size)return; const runs=selectionRuns();
+  gv('agSelWhen').innerHTML='Planning: '+runs.map(r=>{ const dd=new Date(r.date+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); return `<b>${dd} ${slotToTime(r.s)}–${slotToTime(r.e+1)}</b>`; }).join(' · ');
+  fillAgsSelects(); gv('ags_title').value=''; gv('ags_proj').value=''; gv('ags_act').value=''; gv('ags_note').value=''; gv('agSelOverlay').classList.add('show'); setTimeout(()=>gv('ags_title').focus(),50); }
+gv('agsSave').onclick=()=>{ const title=gv('ags_title').value.trim(); if(!title){ alert('Write what you are doing.'); return; } const pid=gv('ags_proj').value, aid=gv('ags_act').value, note=gv('ags_note').value.trim();
+  selectionRuns().forEach(r=>{ agenda.push({id:uid(),title,date:r.date,start:slotToTime(r.s),end:slotToTime(r.e+1),projectId:pid,activityId:aid,note}); });
+  agSelSet.clear(); gv('agSelOverlay').classList.remove('show'); renderAgenda(); };
+gv('agsNewProj').onclick=()=>{ const nm=(prompt('New project name:')||'').trim(); if(!nm)return; const o={id:uid(),name:nm,dept:departments[0].id,status:'in-progress',date:ymd(new Date()),areas:[AREAS[0]],simple:'',detail:'',components:'',impact:'',target:'',tech:[],actions:[],attachments:[],comments:[],version:1,versions:[]}; projects.push(o); renderAll(); fillAgsSelects(); gv('ags_proj').value=o.id; };
+gv('agSelClose').onclick=()=>gv('agSelOverlay').classList.remove('show'); gv('agsCancel').onclick=()=>gv('agSelOverlay').classList.remove('show'); gv('agSelOverlay').onclick=ev=>{ if(ev.target===gv('agSelOverlay'))gv('agSelOverlay').classList.remove('show'); };
+document.addEventListener('mouseup',()=>{ if(!dragging)return; dragging=false; const a=Math.min(dragFrom,dragTo),b=Math.max(dragFrom,dragTo);
+  if(!dragMoved){ const k=dragDay+'|'+dragFrom; if(agSelSet.has(k))agSelSet.delete(k); else agSelSet.add(k); }
+  else { for(let s=a;s<=b;s++) agSelSet.add(dragDay+'|'+s); }
+  renderAgenda(); });
 function agSummary(){ const [s,e]=agRange(); const ss=ymd(s), ee=ymd(e); const ents=agenda.filter(x=>x.date>=ss&&x.date<=ee);
   const byProj={}; let total=0; ents.forEach(x=>{ const h=dur(x); total+=h; const k=x.projectId||'(none)'; byProj[k]=(byProj[k]||0)+h; });
   const rows=Object.entries(byProj).sort((a,b)=>b[1]-a[1]); const max=Math.max(...rows.map(r=>r[1]),1);
@@ -1197,6 +1263,8 @@ function agSummary(){ const [s,e]=agRange(); const ss=ymd(s), ee=ymd(e); const e
   return h; }
 function renderAgenda(){ const L=document.getElementById('agLabel'); if(!L)return; L.textContent=agLabelText();
   document.getElementById('agCal').innerHTML = agViewMode==='month'?calMonth():agViewMode==='week'?calWeek():calDay();
+  if(agViewMode!=='month') agAttachGrid();
+  renderSelBar();
   document.getElementById('agSummary').innerHTML=agSummary(); queueSync(); }
 document.querySelectorAll('#agView button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#agView button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); agViewMode=b.dataset.v; renderAgenda(); });
 gv('agPrev').onclick=()=>shiftAnchor(-1); gv('agNext').onclick=()=>shiftAnchor(1);
