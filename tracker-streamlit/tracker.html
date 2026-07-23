@@ -284,9 +284,9 @@
 
   footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
 
-  .overlay{position:fixed;inset:0;background:rgba(20,20,18,.42);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .overlay{position:fixed;inset:0;background:rgba(20,20,18,.42);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;z-index:50;overflow:auto;}
   .overlay.show{display:flex;}
-  .modal{background:var(--surface);border-radius:18px;max-width:560px;width:100%;padding:22px 24px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal{background:var(--surface);border-radius:18px;max-width:560px;width:100%;padding:22px 24px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:calc(100vh - 48px);overflow-y:auto;}
   .modal h3{margin:0 0 4px;font-size:18px;font-weight:800;} .modal p.help{margin:0 0 16px;font-size:12.5px;color:var(--muted);}
   .field{margin-bottom:12px;} .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:5px;}
   .field input,.field textarea,.field select{width:100%;font:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface-2);color:var(--ink);outline:none;}
@@ -828,9 +828,9 @@ function deckCard(p,idx){
       <div class="dmeta"><span style="font-size:11.5px;color:var(--ink-2);font-weight:600">${dp.name}${p.date?' · '+fmt(p.date):''}</span>
         <select class="qstat" title="Change status" onchange="setStatus(cardGi(this),this.value)">${stsel}</select>
         <button class="editbtn" onclick="openEdit(${gi})">✎ Edit</button>
-        <button class="editbtn" onclick="newVersion(cardGi(this))" title="Archive current notes & documents as a version, then start this project fresh for the next version">＋ New version</button></div>
+        <button class="editbtn" onclick="newVersion(cardGi(this))" title="Save a snapshot of the current notes & documents as a version and keep working — nothing is deleted">＋ New version</button></div>
       ${(p.versions&&p.versions.length)?`<div class="blk" style="margin-top:10px"><div class="bh">🔖 Version history — this is v${p.version||1}</div>
-        ${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> Derived from Version ${v.version} — archived ${fmt(v.at)} · open all its notes &amp; documents</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}
+        ${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> 📸 Version ${v.version} snapshot — saved ${fmt(v.at)} · open all its notes &amp; documents</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}
       </div>`:''}
       ${p.target?`<div class="dtxt" style="margin-top:8px"><b style="color:#7a6410">🎯 Target:</b> ${esc(p.target)}</div>`:''}
       <div class="dtxt" style="margin-top:6px">${p.simple||''}</div>
@@ -872,18 +872,17 @@ function removeAttachment(el,xi){ const gi=cardGi(el); projects[gi].attachments.
 /* ---- Project versioning ---- */
 function newVersion(gi){
   const p=projects[gi]; const cur=p.version||1;
-  if(!confirm('Create a NEW version of "'+p.name+'"?\n\nThe current notes, actions and documents will be archived as Version '+cur+'. The project then starts fresh (v'+(cur+1)+') for the new work — you can still open the old version any time from inside the project.'))return;
+  if(!confirm('Save a snapshot of "'+p.name+'" as Version '+cur+', then continue as v'+(cur+1)+'?\n\nNothing is deleted — all your current notes, actions and documents stay exactly where they are. Version '+cur+' is kept as a read-only snapshot you can reopen any time, so you never lose a week of work.'))return;
   const snap={version:cur, at:new Date().toISOString().slice(0,10),
     status:p.status, date:p.date, simple:p.simple, detail:p.detail, components:p.components, impact:p.impact, target:p.target,
     tech:(p.tech||[]).slice(), actions:JSON.parse(JSON.stringify(p.actions||[])),
     attachments:JSON.parse(JSON.stringify(p.attachments||[])), comments:JSON.parse(JSON.stringify(p.comments||[]))};
   (p.versions=p.versions||[]).push(snap);
   p.version=cur+1;
-  // start fresh for the new version: keep identity + description, clear the work log
-  p.comments=[]; p.actions=[]; p.attachments=[];
-  p.status='in-progress'; p.date=new Date().toISOString().slice(0,10);
+  // Non-destructive: the live card KEEPS all its notes, actions and documents. The snapshot above
+  // is just a point-in-time backup. Nothing is erased — you carry everything forward into the new version.
   cardOpen[gi]=true;
-  reProjects(); renderMatrix(); renderBoss();
+  reProjects(); renderMatrix(); renderBoss(); queueSync();
 }
 function versionSnapshotHTML(v){
   const acts=(v.actions||[]); const done=acts.filter(a=>a.done).length;
@@ -987,8 +986,9 @@ const gv=id=>document.getElementById(id);
 function fillForm(p){ gv('f_name').value=p.name||''; gv('f_dept').value=p.dept||departments[0].id; gv('f_status').value=p.status||'delivered';
   gv('f_date').value=p.date||''; gv('f_simple').value=p.simple||''; gv('f_detail').value=p.detail||''; gv('f_components').value=p.components||''; gv('f_impact').value=p.impact||''; gv('f_target').value=p.target||''; gv('f_tech').value=(p.tech||[]).join(', ');
   document.querySelectorAll('#f_areas input').forEach(x=>x.checked=(p.areas||[]).includes(x.value)); }
-function openAdd(){ editing=null; fillForm({}); gv('modalTitle').textContent='Add a project'; gv('saveBtn').textContent='Add to board'; gv('delBtn').style.display='none'; gv('genOut').style.display='none'; overlay.classList.add('show'); }
-function openEdit(gi){ editing=gi; fillForm(projects[gi]); gv('modalTitle').textContent='Edit / update project'; gv('saveBtn').textContent='Save changes'; gv('delBtn').style.display='inline-flex'; gv('genOut').style.display='none'; overlay.classList.add('show'); }
+function modalToTop(ov){ const o=gv(ov); o.scrollTop=0; const m=o.querySelector('.modal'); if(m)m.scrollTop=0; }
+function openAdd(){ editing=null; fillForm({}); gv('modalTitle').textContent='Add a project'; gv('saveBtn').textContent='Add to board'; gv('delBtn').style.display='none'; gv('genOut').style.display='none'; overlay.classList.add('show'); modalToTop('overlay'); }
+function openEdit(gi){ editing=gi; fillForm(projects[gi]); gv('modalTitle').textContent='Edit / update project'; gv('saveBtn').textContent='Save changes'; gv('delBtn').style.display='inline-flex'; gv('genOut').style.display='none'; overlay.classList.add('show'); modalToTop('overlay'); setTimeout(()=>{gv('f_name').focus();gv('f_name').blur();modalToTop('overlay');},30); }
 gv('addBtn').onclick=openAdd;
 const closeModal=()=>{overlay.classList.remove('show'); gv('genOut').style.display='none';};
 gv('closeX').onclick=closeModal; gv('cancelBtn').onclick=closeModal; overlay.onclick=e=>{ if(e.target===overlay)closeModal(); };
@@ -1042,7 +1042,7 @@ function projectCardStatic(p,idx){
       <div class="blk" style="margin-top:11px"><div class="bh">✅ Actions &amp; completed <span class="prog">${done}/${acts.length}</span></div>${actsHtml||'<div style="font-size:12px;color:var(--ink-2)">—</div>'}</div>
       ${attHtml?`<div class="blk" style="margin-top:12px"><div class="bh">📎 Attachments</div><div class="att">${attHtml}</div></div>`:''}
       ${cmts?`<div class="cmts"><div class="chead">📝 Update notes</div>${cmts}</div>`:''}
-      ${(p.versions&&p.versions.length)?`<div class="blk" style="margin-top:12px"><div class="bh">🔖 Version history</div>${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> Version ${v.version} — archived ${fmt(v.at)}</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}</div>`:''}
+      ${(p.versions&&p.versions.length)?`<div class="blk" style="margin-top:12px"><div class="bh">🔖 Version history</div>${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> 📸 Version ${v.version} snapshot — saved ${fmt(v.at)}</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}</div>`:''}
     </div></details>`;
 }
 function detailsGroup(title,ps){ return `<h2 style="font-size:15px;margin:22px 0 10px">${title}</h2><div style="display:flex;flex-direction:column;gap:12px">${ps.map((p,i)=>projectCardStatic(p,i)).join('')||'<div style="color:var(--muted)">—</div>'}</div>`; }
