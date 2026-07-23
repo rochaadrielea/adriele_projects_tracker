@@ -117,6 +117,12 @@
   .dcard .dtxt{color:var(--ink-2);}
   input::placeholder,textarea::placeholder{color:#83827a;}
   .tbul{margin:2px 0 0;padding-left:18px;} .tbul li{font-size:12.5px;color:var(--ink-2);margin-bottom:4px;line-height:1.45;} .tbul li b{color:var(--ink);}
+  .vbadge{font-size:10px;font-weight:800;color:#5a45c9;background:#efeaff;border:1px solid #d9cff5;border-radius:6px;padding:1px 6px;}
+  details.verline{border:1px solid var(--border-strong);border-radius:9px;padding:8px 11px;margin-bottom:7px;background:#faf8ff;}
+  details.verline>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;color:#5a45c9;display:flex;align-items:center;gap:7px;}
+  details.verline>summary::-webkit-details-marker{display:none;}
+  details.verline>summary .vchev{transition:transform .2s;} details.verline[open]>summary .vchev{transform:rotate(90deg);}
+  .verbody{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-strong);}
   /* collapsible report rows */
   details.rdet>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
   details.rdet>summary::-webkit-details-marker{display:none;}
@@ -378,15 +384,16 @@
   <div class="pane" id="pane-timesheet">
     <div class="sec-head"><h2>Timesheet</h2><span class="hint">clock in / out and lunch · worked hours calculated automatically</span></div>
     <div class="toolbar">
-      <label>Who:</label><input id="tsWho" placeholder="name / code" style="width:130px">
+      <label>Std day:</label><input id="tsHours" type="number" value="8" step="0.5" min="0" style="width:58px" title="Target work hours per day"><span style="color:var(--muted);font-size:12px">h work</span>
+      <label>Lunch:</label><input id="tsLunch" type="number" value="60" step="15" min="0" style="width:62px" title="Lunch minutes"><span style="color:var(--muted);font-size:12px">min</span>
       <label>Month:</label><select id="tsMonth"><option value="">All</option></select>
-      <label>or period:</label><input type="date" id="tsFrom"><span style="color:var(--muted)">→</span><input type="date" id="tsTo">
+      <label>Period:</label><input type="date" id="tsFrom"><span style="color:var(--muted)">→</span><input type="date" id="tsTo">
       <span class="grow"></span>
       <button class="btn" id="tsAdd">＋ Add day</button>
       <button class="btn primary" id="dlTs">⬇ Download timesheet (CSV)</button>
     </div>
     <div class="sheet-card"><table class="grid" id="tsTable"></table></div>
-    <p class="hint" style="margin-top:10px">Worked = (clock out − clock in) − lunch. Pick a month or a from/to period, then download — it opens in Excel.</p>
+    <p class="hint" style="margin-top:10px">Today's row is added automatically. Type your <b>clock in</b> and it suggests lunch (12:00) and a clock out for a full day — edit anything. Worked = (clock out − clock in) − lunch.</p>
   </div>
 
   <footer>
@@ -469,7 +476,17 @@ let AREAS = ['Automation & Efficiency','Quality & Verification','Data & Business
 
 let projects = [
   {name:'LabelScanner — AI vision label reader', dept:'quality', status:'live', date:'2026-07-21',
-   areas:['Automation & Efficiency','Quality & Verification'],
+   areas:['Automation & Efficiency','Quality & Verification'], version:2,
+   versions:[{version:1, at:'2026-07-15', status:'delivered', date:'2026-07-10',
+     simple:'First release — read WAE material labels only, results straight to Excel.',
+     detail:'Languages: Python\nKey libraries: pyzbar (barcode), Tesseract (OCR), openpyxl\nHow it works: single-engine, barcode-first read of WAE labels only',
+     components:'core/pipeline.py · sinks/excel_sink.py',
+     impact:'WAE labels auto-read; MSL not yet supported.',
+     target:'Add the MSL label family and a vision engine for accuracy.',
+     tech:['Python','Barcode','OCR','openpyxl'],
+     actions:[{text:'Read WAE labels',done:true},{text:'Export to Excel',done:true}],
+     attachments:[{type:'excel',name:'wae_first_run.xlsx',url:'#'}],
+     comments:[{by:'Adriele',at:'12 Jul',text:'v1 shipped to Quality. Feedback: needs MSL support and higher accuracy → starting v2.'}]}],
    simple:'Point a camera at part labels and the details type themselves into Excel — no manual data entry.',
    detail:'Built a multi-engine label reader in Python, combining Claude vision with pyzbar / zxing barcode decoding and Tesseract / EasyOCR\nDesigned a consensus step that reconciles material, charge/batch, quantity and serial across the three readers\nEngineered a plugin-profile system (WAE / MSL) so new label families are added without touching the core\nIntegrated the flow from camera photos through SQLite (label_scan.db) to Excel via openpyxl\nPackaged the tool as a standalone Windows .exe with PyInstaller for non-technical users\nAutomated reading of 296 labels in a single run, removing manual data entry',
    components:'core/pipeline.py · core/detect.py · core/consensus.py · profiles/{wae,msl}.py · sinks/excel_sink.py · core/models.py · core/registry.py · label_scan.db (SQLite)',
@@ -670,6 +687,7 @@ function deckCard(p,idx){
       <span class="stpill" style="background:${s.color}">${s.label}</span>
       <span class="cd" style="background:${dp.color};width:8px;height:8px;border-radius:50%"></span>
       <span class="htitle">${p.name}</span>
+      ${p.version>1?`<span class="vbadge">v${p.version}</span>`:''}
       <span class="hsum">${sum}</span>
       <span style="flex:1;min-width:8px"></span>
       ${p.target?`<span class="deadline">🎯 ${esc(p.target.slice(0,44))}${p.target.length>44?'…':''}</span>`:''}
@@ -680,7 +698,11 @@ function deckCard(p,idx){
     <div class="dbodyx">
       <div class="dmeta"><span style="font-size:11.5px;color:var(--ink-2);font-weight:600">${dp.name}${p.date?' · '+fmt(p.date):''}</span>
         <select class="qstat" title="Change status" onchange="setStatus(cardGi(this),this.value)">${stsel}</select>
-        <button class="editbtn" onclick="openEdit(${gi})">✎ Edit</button></div>
+        <button class="editbtn" onclick="openEdit(${gi})">✎ Edit</button>
+        <button class="editbtn" onclick="newVersion(cardGi(this))" title="Archive current notes & documents as a version, then start this project fresh for the next version">＋ New version</button></div>
+      ${(p.versions&&p.versions.length)?`<div class="blk" style="margin-top:10px"><div class="bh">🔖 Version history — this is v${p.version||1}</div>
+        ${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> Derived from Version ${v.version} — archived ${fmt(v.at)} · open all its notes &amp; documents</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}
+      </div>`:''}
       ${p.target?`<div class="dtxt" style="margin-top:8px"><b style="color:#7a6410">🎯 Target:</b> ${esc(p.target)}</div>`:''}
       <div class="dtxt" style="margin-top:6px">${p.simple||''}</div>
       ${p.impact?`<div class="dimpact">✓ ${p.impact}</div>`:''}
@@ -714,6 +736,39 @@ function addAttachment(el){ const c=cardOf(el), gi=+c.dataset.gi; const t=c.quer
   if(!nm&&!url)return; (projects[gi].attachments=projects[gi].attachments||[]).push({type:t,name:nm||url,url:url||'#'}); reProjects(); }
 function addPhoto(input){ const gi=cardGi(input); const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ (projects[gi].attachments=projects[gi].attachments||[]).push({type:'photo',name:f.name,url:e.target.result}); reProjects(); }; r.readAsDataURL(f); }
 function removeAttachment(el,xi){ const gi=cardGi(el); projects[gi].attachments.splice(xi,1); reProjects(); }
+
+/* ---- Project versioning ---- */
+function newVersion(gi){
+  const p=projects[gi]; const cur=p.version||1;
+  if(!confirm('Create a NEW version of "'+p.name+'"?\n\nThe current notes, actions and documents will be archived as Version '+cur+'. The project then starts fresh (v'+(cur+1)+') for the new work — you can still open the old version any time from inside the project.'))return;
+  const snap={version:cur, at:new Date().toISOString().slice(0,10),
+    status:p.status, date:p.date, simple:p.simple, detail:p.detail, components:p.components, impact:p.impact, target:p.target,
+    tech:(p.tech||[]).slice(), actions:JSON.parse(JSON.stringify(p.actions||[])),
+    attachments:JSON.parse(JSON.stringify(p.attachments||[])), comments:JSON.parse(JSON.stringify(p.comments||[]))};
+  (p.versions=p.versions||[]).push(snap);
+  p.version=cur+1;
+  // start fresh for the new version: keep identity + description, clear the work log
+  p.comments=[]; p.actions=[]; p.attachments=[];
+  p.status='in-progress'; p.date=new Date().toISOString().slice(0,10);
+  cardOpen[gi]=true;
+  reProjects(); renderMatrix(); renderBoss();
+}
+function versionSnapshotHTML(v){
+  const acts=(v.actions||[]); const done=acts.filter(a=>a.done).length;
+  const actsHtml=acts.map(a=>`<div class="act ${a.done?'done':''}"><span>${a.done?'☑':'☐'}</span><label>${esc(a.text)}</label></div>`).join('')||'<div style="font-size:12px;color:var(--ink-2)">—</div>';
+  const attHtml=(v.attachments||[]).map(at=>{ const isImg=at.type==='photo'&&at.url&&(at.url.startsWith('data:image')||/\.(png|jpe?g|gif|webp)$/i.test(at.url)); const has=at.url&&at.url!=='#';
+    return isImg?`<a class="attchip" href="${has?esc(at.url):'javascript:void(0)'}" ${has?'target="_blank" rel="noopener"':''}><img class="attthumb" src="${at.url}"></a>`:`<a class="attchip" href="${has?esc(at.url):'javascript:void(0)'}" ${has?'target="_blank" rel="noopener"':''}>${attIcon(at.type)} ${esc(at.name)}</a>`; }).join('')||'<span style="font-size:12px;color:var(--ink-2)">—</span>';
+  const cmts=(v.comments||[]).map(c=>`<div class="cmt"><div class="who">${esc(c.by)||'Someone'}<span>${esc(c.at||'')}</span></div><div class="tx">${esc(c.text)}</div></div>`).join('')||'<div style="font-size:12px;color:var(--ink-2)">No notes.</div>';
+  const st=statusById[v.status]||{label:v.status||'',color:'#999'};
+  return `<div class="dmeta"><span class="stpill" style="background:${st.color}">${st.label}</span><span style="font-size:11.5px;color:var(--ink-2)">${v.date?fmt(v.date):''}</span></div>
+    ${v.target?`<div class="dtxt" style="margin-top:8px"><b style="color:#7a6410">🎯 Target:</b> ${esc(v.target)}</div>`:''}
+    <div class="dtxt" style="margin-top:6px">${esc(v.simple||'')}</div>
+    ${v.impact?`<div class="dimpact">✓ ${esc(v.impact)}</div>`:''}
+    <div class="blk" style="margin-top:10px"><div class="bh">🛠 Technical detail</div>${techUL(v)}${v.components?`<div class="dtxt" style="margin-top:5px"><b>Key components:</b> <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px">${esc(v.components)}</span></div>`:''}<div class="dchips" style="margin-top:8px">${(v.tech||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div></div>
+    <div class="blk" style="margin-top:10px"><div class="bh">✅ Actions &amp; completed <span class="prog">${done}/${acts.length}</span></div>${actsHtml}</div>
+    <div class="blk" style="margin-top:10px"><div class="bh">📎 Attachments</div><div class="att">${attHtml}</div></div>
+    <div class="cmts"><div class="chead">📝 Update notes</div>${cmts}</div>`;
+}
 function renderProjList(){
   const order={'in-progress':0,'idea':1,'live':2,'delivered':3};
   const ps=projects.filter(passesFilter).sort((a,b)=>(order[a.status]??9)-(order[b.status]??9));
@@ -841,7 +896,7 @@ function projectCardStatic(p,idx){
   const raw=(p.impact||p.simple||''); const sum=raw?'— '+esc(raw.slice(0,70))+(raw.length>70?'…':''):'';
   const open=(idx===0)?' open':'';
   return `<details class="dcard rdet st-${p.status}"${open}>
-    <summary><span class="stpill" style="background:${s.color}">${s.label}</span><b class="htitle">${esc(p.name)}</b><span class="hsum">${sum}</span><span style="flex:1;min-width:8px"></span>${p.target?`<span class="deadline">🎯 ${esc(p.target.slice(0,44))}${p.target.length>44?'…':''}</span>`:''}${acts.length?`<span class="hprog">✅ ${done}/${acts.length}</span>`:''}<span class="chev">›</span></summary>
+    <summary><span class="stpill" style="background:${s.color}">${s.label}</span><b class="htitle">${esc(p.name)}</b>${p.version>1?`<span class="vbadge">v${p.version}</span>`:''}<span class="hsum">${sum}</span><span style="flex:1;min-width:8px"></span>${p.target?`<span class="deadline">🎯 ${esc(p.target.slice(0,44))}${p.target.length>44?'…':''}</span>`:''}${acts.length?`<span class="hprog">✅ ${done}/${acts.length}</span>`:''}<span class="chev">›</span></summary>
     <div class="rbody">
       <div style="font-size:11.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">${dp.name}${p.date?' · '+fmt(p.date):''}</div>
       ${p.target?`<div class="dtxt" style="margin-bottom:6px"><b style="color:#7a6410">🎯 Target:</b> ${esc(p.target)}</div>`:''}
@@ -854,6 +909,7 @@ function projectCardStatic(p,idx){
       <div class="blk" style="margin-top:11px"><div class="bh">✅ Actions &amp; completed <span class="prog">${done}/${acts.length}</span></div>${actsHtml||'<div style="font-size:12px;color:var(--ink-2)">—</div>'}</div>
       ${attHtml?`<div class="blk" style="margin-top:12px"><div class="bh">📎 Attachments</div><div class="att">${attHtml}</div></div>`:''}
       ${cmts?`<div class="cmts"><div class="chead">📝 Update notes</div>${cmts}</div>`:''}
+      ${(p.versions&&p.versions.length)?`<div class="blk" style="margin-top:12px"><div class="bh">🔖 Version history</div>${p.versions.slice().reverse().map(v=>`<details class="verline"><summary><span class="vchev">▸</span> Version ${v.version} — archived ${fmt(v.at)}</summary><div class="verbody">${versionSnapshotHTML(v)}</div></details>`).join('')}</div>`:''}
     </div></details>`;
 }
 function detailsGroup(title,ps){ return `<h2 style="font-size:15px;margin:22px 0 10px">${title}</h2><div style="display:flex;flex-direction:column;gap:12px">${ps.map((p,i)=>projectCardStatic(p,i)).join('')||'<div style="color:var(--muted)">—</div>'}</div>`; }
@@ -964,7 +1020,7 @@ function renderTimesheet(){
     const doc=r.doc?`<a class="attchip" href="${esc(r.doc.url)}" ${r.doc.url&&r.doc.url!=='#'?'target="_blank" rel="noopener"':''}>📄 ${esc(r.doc.name)}</a> <button class="trm" title="Remove" onclick="tsDelDoc(${i})">×</button>`
       :`<button class="btn sm" onclick="document.getElementById('tsf_${i}').click()">📎 Add</button><input type="file" id="tsf_${i}" style="display:none" onchange="tsDoc(${i},this)">`;
     return `<tr><td><input type="date" value="${r.date||''}" onchange="tsSet(${i},'date',this.value)"></td>
-      <td><input type="time" value="${r.in||''}" onchange="tsSet(${i},'in',this.value)"></td>
+      <td><input type="time" value="${r.in||''}" onchange="tsSetIn(${i},this.value)"></td>
       <td><input type="time" value="${r.lo||''}" onchange="tsSet(${i},'lo',this.value)"></td>
       <td><input type="time" value="${r.li||''}" onchange="tsSet(${i},'li',this.value)"></td>
       <td><input type="time" value="${r.out||''}" onchange="tsSet(${i},'out',this.value)"></td>
@@ -978,16 +1034,29 @@ function renderTimesheet(){
 function tsDoc(i,input){ const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ timesheet[i].doc={name:f.name,url:e.target.result}; renderTimesheet(); }; r.readAsDataURL(f); }
 function tsDelDoc(i){ timesheet[i].doc=null; renderTimesheet(); }
 function tsSet(i,k,v){ timesheet[i][k]=v; renderTimesheet(); }
+const minToTime=m=>{ m=Math.max(0,Math.min(24*60-1,Math.round(m))); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+function tsSetIn(i,val){ const r=timesheet[i]; r.in=val;
+  const hours=parseFloat((document.getElementById('tsHours')||{}).value)||8;
+  const lunch=parseInt((document.getElementById('tsLunch')||{}).value)||0;
+  const inM=toMin(val);
+  if(inM!=null){
+    if(lunch>0){ if(!r.lo) r.lo='12:00'; if(!r.li) r.li=minToTime(toMin(r.lo)+lunch); }
+    if(!r.out) r.out=minToTime(inM+hours*60+lunch);
+  }
+  renderTimesheet();
+}
 function tsDel(i){ timesheet.splice(i,1); renderTimesheet(); }
-gv('tsAdd').onclick=()=>{ timesheet.push({date:new Date().toISOString().slice(0,10),in:'',lo:'',li:'',out:''}); renderTimesheet(); };
-['tsMonth','tsFrom','tsTo'].forEach(id=>{ gv(id).addEventListener('change',renderTimesheet); });
-gv('dlTs').onclick=()=>{ const who=gv('tsWho').value.trim();
+gv('tsAdd').onclick=()=>{ timesheet.push({date:new Date().toISOString().slice(0,10),in:'',lo:'',li:'',out:'',note:'',doc:null}); renderTimesheet(); };
+['tsMonth','tsFrom','tsTo','tsHours','tsLunch'].forEach(id=>{ const el=gv(id); if(el)el.addEventListener('change',renderTimesheet); });
+gv('dlTs').onclick=()=>{ const who=(currentUser||'').trim();
   const rows=[['Date','Clock in','Lunch out','Lunch in','Clock out','Worked (h:m)','Worked (min)','Note','Document']]; let total=0;
   tsFiltered().forEach(({r})=>{ const w=worked(r); if(w!=null)total+=w; rows.push([r.date,r.in,r.lo,r.li,r.out,hm(w),w==null?'':w,r.note||'',(r.doc||{}).name||'']); });
   rows.push([]); rows.push(['Total','','','','','',total,'','']);
   const label=gv('tsMonth').value||((gv('tsFrom').value||'start')+'_'+(gv('tsTo').value||'end'));
   csvDownload(`timesheet_${who?who+'_':''}${label}.csv`,rows); };
 
+// Auto-add a row for today so you don't have to click "Add day".
+(function(){ const today=new Date().toISOString().slice(0,10); if(!timesheet.some(r=>r.date===today)) timesheet.push({date:today,in:'',lo:'',li:'',out:'',note:'',doc:null}); })();
 renderActivities(); renderTimesheet();
 
 /* Cards / Table toggle for projects */
@@ -1003,9 +1072,9 @@ boardView.querySelectorAll('button').forEach(b=>b.onclick=()=>{
 
 /* ================= REAL EXCEL (.xlsx) EXPORT ================= */
 function projectsAOA(){
-  const head=['Project','Department','Area(s)','Status','Date','Target','Actions done','Actions total','Actions','Impact','Technical detail','Key components','Technologies','Attachments','Update notes'];
+  const head=['Project','Version','Department','Area(s)','Status','Date','Target','Actions done','Actions total','Actions','Impact','Technical detail','Key components','Technologies','Attachments','Update notes'];
   const rows=projects.map(p=>{ const acts=(p.actions||[]); const done=acts.filter(a=>a.done).length;
-    return [p.name,(deptById[p.dept]||{}).name||'',(p.areas||[]).join('; '),(statusById[p.status]||{}).label||p.status,p.date||'',p.target||'',done,acts.length,
+    return [p.name,'v'+(p.version||1),(deptById[p.dept]||{}).name||'',(p.areas||[]).join('; '),(statusById[p.status]||{}).label||p.status,p.date||'',p.target||'',done,acts.length,
       acts.map(a=>(a.done?'[x] ':'[ ] ')+a.text).join('; '),p.impact||'',(p.detail||'').replace(/\n/g,' • '),p.components||'',(p.tech||[]).join(', '),(p.attachments||[]).map(a=>a.name).join('; '),
       (p.comments||[]).map(c=>`${c.by} (${c.at||''}): ${c.text}`).join('  |  ')];
   });
