@@ -1264,6 +1264,8 @@ document.addEventListener('mouseup',()=>{ if(!dragging)return; dragging=false; c
   renderAgenda();
   // Drag = "I picked this time span" → jump straight into adding the activity, with the time already filled in.
   if(wasDrag && agSelSet.size) openAgSel(); });
+// Click anywhere outside the calendar (and not on the selection bar / a modal) → drop the whole selection at once.
+document.addEventListener('mousedown',ev=>{ if(!agSelSet.size||dragging)return; if(document.querySelector('.overlay.show'))return; if(ev.target.closest('#agCal')||ev.target.closest('#agSelBar'))return; agSelSet.clear(); renderAgenda(); });
 function agSummary(){ const [s,e]=agRange(); const ss=ymd(s), ee=ymd(e); const ents=agenda.filter(x=>x.date>=ss&&x.date<=ee);
   const byProj={}; let total=0; ents.forEach(x=>{ const h=dur(x); total+=h; const k=x.projectId||'(none)'; byProj[k]=(byProj[k]||0)+h; });
   const rows=Object.entries(byProj).sort((a,b)=>b[1]-a[1]); const max=Math.max(...rows.map(r=>r[1]),1);
