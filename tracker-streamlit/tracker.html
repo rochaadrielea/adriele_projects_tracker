@@ -190,9 +190,10 @@
   .tg-dayhead{font-size:12px;font-weight:800;color:var(--ink-2);text-align:center;padding:6px 0;}
   .tg-dayhead.today{color:var(--quality);}
   .tg-body{display:grid;grid-template-columns:56px repeat(var(--cols),1fr);background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;user-select:none;}
-  .tg-hr{height:38px;font-size:10.5px;color:var(--muted);text-align:right;padding-right:6px;border-top:1px solid var(--grid);box-sizing:border-box;}
+  .tg-hr{height:56px;font-size:10.5px;color:var(--muted);text-align:right;padding-right:6px;border-top:1px solid var(--grid);box-sizing:border-box;}
   .tg-col{position:relative;border-left:1px solid var(--grid);}
-  .tg-slot{height:38px;border-top:1px solid var(--grid);box-sizing:border-box;cursor:pointer;}
+  .tg-slot{height:14px;border-top:1px dashed rgba(0,0,0,.05);box-sizing:border-box;cursor:pointer;}
+  .tg-slot.hourline{border-top:1px solid var(--grid);}
   .tg-slot:hover{background:#eef4ff;}
   .tg-slot.sel,.tg-slot.selrange{background:#cfe0fb;}
   .tg-ev{position:absolute;left:3px;right:3px;color:#fff;border-radius:6px;padding:2px 6px;font-size:10.5px;line-height:1.25;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.18);z-index:2;}
@@ -1211,7 +1212,9 @@ function calMonth(){ const y=agAnchor.getFullYear(), m=agAnchor.getMonth(); cons
   for(let i=0;i<42;i++){ const d=new Date(gs); d.setDate(gs.getDate()+i); const ds=ymd(d); const other=d.getMonth()!==m; const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
     cells+=`<div class="cal-cell ${other?'other':''} ${ds===todayS?'today':''}" onclick="agAddOn('${ds}')"><div class="dn">${d.getDate()}</div>${ents.slice(0,4).map(e=>`<div class="ag-chip" style="background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')">${e.start?e.start+' ':''}${esc(e.title)}</div>`).join('')}${ents.length>4?`<div style="font-size:10px;color:var(--muted);margin-top:2px">+${ents.length-4} more</div>`:''}</div>`; }
   return `<div class="cal-dowrow">${dows.map(x=>`<div class="cal-dow">${x}</div>`).join('')}</div><div class="cal-month">${cells}</div>`; }
-const AG_START=7, AG_END=20, SLOT_H=38;   // grid runs 07:00–20:00, one row per hour
+const AG_START=7, AG_END=20, SLOT_MIN=15, SLOT_H=14;   // grid 07:00–20:00, one row per 15 min
+const SPH=60/SLOT_MIN, AG_SLOTS=(AG_END-AG_START)*SPH;
+const slotToTime=s=>{ const m=AG_START*60+s*SLOT_MIN; return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
 let agSelSet=new Set(); let dragging=false, dragDay=null, dragFrom=0, dragTo=0, dragMoved=false;
 function weekDays(){ const [mon]=agRange(); const arr=[]; for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); arr.push(ymd(d)); } return arr; }
 function calWeek(){ return timeGrid(weekDays()); }
@@ -1222,8 +1225,8 @@ function timeGrid(days){
   const head=`<div class="tg-head" style="--cols:${days.length}"><div></div>${days.map(d=>`<div class="tg-dayhead ${d===todayS?'today':''}">${new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</div>`).join('')}</div>`;
   const gutter=`<div>${hours.map(h=>`<div class="tg-hr">${String(h).padStart(2,'0')}:00</div>`).join('')}</div>`;
   const cols=days.map(day=>{
-    const slots=hours.map((h,si)=>`<div class="tg-slot ${agSelSet.has(day+'|'+si)?'sel':''}" data-day="${day}" data-slot="${si}"></div>`).join('');
-    const evs=agenda.filter(e=>e.date===day).map(e=>{ const s=toMin(e.start),en=toMin(e.end); if(s==null||en==null)return''; const top=(s-AG_START*60)/60*SLOT_H; const hgt=Math.max(15,(en-s)/60*SLOT_H); return `<div class="tg-ev" style="top:${top}px;height:${hgt}px;background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')" title="${esc(e.title)}"><b>${e.start}</b> ${esc(e.title)}</div>`; }).join('');
+    let slots=''; for(let si=0;si<AG_SLOTS;si++){ slots+=`<div class="tg-slot ${si%SPH===0?'hourline':''} ${agSelSet.has(day+'|'+si)?'sel':''}" data-day="${day}" data-slot="${si}"></div>`; }
+    const evs=agenda.filter(e=>e.date===day).map(e=>{ const s=toMin(e.start),en=toMin(e.end); if(s==null||en==null)return''; const top=(s-AG_START*60)/SLOT_MIN*SLOT_H; const hgt=Math.max(13,(en-s)/SLOT_MIN*SLOT_H); return `<div class="tg-ev" style="top:${top}px;height:${hgt}px;background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')" title="${esc(e.title)}"><b>${e.start}</b> ${esc(e.title)}</div>`; }).join('');
     return `<div class="tg-col" data-day="${day}"><div>${slots}</div>${evs}</div>`;
   }).join('');
   return head+`<div class="tg-body" style="--cols:${days.length}">${gutter}${cols}</div>`;
@@ -1235,9 +1238,8 @@ function agAttachGrid(){ document.querySelectorAll('#agCal .tg-slot').forEach(c=
 function paintDragRange(){ const a=Math.min(dragFrom,dragTo),b=Math.max(dragFrom,dragTo); document.querySelectorAll('#agCal .tg-col[data-day="'+dragDay+'"] .tg-slot').forEach(c=>{ const s=+c.dataset.slot; c.classList.toggle('selrange', s>=a&&s<=b); }); }
 function selectionRuns(){ const byDay={}; agSelSet.forEach(k=>{ const i=k.lastIndexOf('|'); const d=k.slice(0,i), s=+k.slice(i+1); (byDay[d]=byDay[d]||[]).push(s); });
   const runs=[]; Object.keys(byDay).sort().forEach(d=>{ const arr=byDay[d].sort((x,y)=>x-y); let st=null,pv=null; arr.forEach(s=>{ if(st===null){st=s;pv=s;} else if(s===pv+1){pv=s;} else { runs.push({date:d,s:st,e:pv}); st=s;pv=s; } }); if(st!==null)runs.push({date:d,s:st,e:pv}); }); return runs; }
-const slotToTime=s=>String(AG_START+s).padStart(2,'0')+':00';
 function renderSelBar(){ const el=document.getElementById('agSelBar'); if(!el)return; if(agViewMode==='month'||!agSelSet.size){ el.innerHTML=''; return; } const runs=selectionRuns();
-  el.innerHTML=`<div class="ag-selbar"><span>⏱ <b>${agSelSet.size}h</b> selected · ${runs.length} block${runs.length!=1?'s':''}</span><span style="flex:1"></span><button class="btn" onclick="openAgSel()">＋ Add activity to these times</button><button class="btn" onclick="clearAgSel()">Clear</button></div>`; }
+  el.innerHTML=`<div class="ag-selbar"><span>⏱ <b>${hm(agSelSet.size*SLOT_MIN)}</b> selected · ${runs.length} block${runs.length!=1?'s':''}</span><span style="flex:1"></span><button class="btn" onclick="openAgSel()">＋ Add activity to these times</button><button class="btn" onclick="clearAgSel()">Clear</button></div>`; }
 function clearAgSel(){ agSelSet.clear(); renderAgenda(); }
 function fillAgsSelects(){ gv('ags_proj').innerHTML='<option value="">— none —</option>'+projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); gv('ags_act').innerHTML='<option value="">— none —</option>'+activities.map(a=>`<option value="${a.id}">${esc((a.text||'').slice(0,60))}</option>`).join(''); }
 function openAgSel(){ if(!agSelSet.size)return; const runs=selectionRuns();
