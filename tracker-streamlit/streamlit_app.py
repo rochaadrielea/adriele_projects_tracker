@@ -70,6 +70,14 @@ with st.sidebar:
 
 # Load the tracker and inject the signed-in name so update notes are auto-signed.
 html = pathlib.Path(__file__).with_name("tracker.html").read_text(encoding="utf-8")
+
+# Wire up the Supabase backend (optional). Put SUPABASE_URL and SUPABASE_ANON_KEY
+# in the app's Secrets to turn on shared, saved data + file storage. If they are
+# absent, the tracker runs in-browser only (like before) — nothing breaks.
+_sb_url = st.secrets.get("SUPABASE_URL", "")
+_sb_key = st.secrets.get("SUPABASE_ANON_KEY", "")
+if _sb_url and _sb_key:
+    html = html.replace("__SUPABASE_URL__", _sb_url).replace("__SUPABASE_ANON_KEY__", _sb_key)
 inject = (
     "<script>window.addEventListener('load',function(){"
     "var w=document.getElementById('whoami');"

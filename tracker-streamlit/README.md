@@ -34,11 +34,26 @@ their **name** (no password) — and their update notes get signed with that nam
 Replace `tracker.html` in the GitHub repo (upload the new version over the old one). Streamlit
 redeploys automatically in a minute.
 
-## Important — about shared data (please read)
-This step gives you a **live, permanent URL** people open with their name. But the tracker’s content
-(projects, notes, timesheet, activities, attachments) currently lives in **each person’s browser
-session** — so if your boss adds a note, *you* won’t automatically see it, and it resets on refresh.
+## Turn on saved, shared data + file storage (Supabase) — optional but recommended
+Without this, the tracker runs in each person’s browser only (resets on refresh). With it, every
+project, note, version, activity and timesheet is **saved in Postgres and synced live** across
+everyone, and photos/documents are stored in **Supabase Storage**.
 
-To make edits **truly shared and saved** for everyone, the tracker needs a small shared datastore.
-The clean next step is to connect a **Google Sheet** (or a small database) behind it — then every
-update is saved centrally and everyone sees the same live data. Ask and I’ll build that next.
+1. **Create a Supabase project** at https://supabase.com (free tier is fine).
+2. **Run the schema.** In Supabase → **SQL Editor → New query**, paste the contents of
+   **`supabase_setup.sql`** (in this folder) → **Run**. It creates the tables, security policies,
+   realtime, and the `attachments` storage bucket.
+3. **Get your keys.** Supabase → **Project Settings → API**: copy the **Project URL** and the
+   **anon public** key.
+4. **Add them to Streamlit.** Your app → **⋮ → Settings → Secrets**, add:
+   ```toml
+   SUPABASE_URL = "https://YOURPROJECT.supabase.co"
+   SUPABASE_ANON_KEY = "your-anon-public-key"
+   ```
+   Save — Streamlit redeploys. That’s it: data now persists and syncs for everyone.
+
+**Notes.** The sign-in is name-only (no real accounts), so the anon key can read/write the data —
+keep the Streamlit app **private (invite-only)** if you want to control who can open it. `projects`
+and `activities` are shared; each person’s `timesheet` is their own. Files go to the public
+`attachments` bucket. This is great for a team; if you later need per-user permissions or audit,
+we can add real Supabase Auth.

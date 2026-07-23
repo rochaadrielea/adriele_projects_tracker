@@ -175,6 +175,34 @@
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
   .toolbar .grow{flex:1;} .toolbar label{font-size:12px;font-weight:700;color:var(--ink-2);}
   .toolbar input,.toolbar select{font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--ink);}
+  /* agenda / calendar */
+  .cal-dowrow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px;}
+  .cal-dow{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;text-align:center;}
+  .cal-month{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:9px;min-height:86px;padding:5px 6px;cursor:pointer;overflow:hidden;}
+  .cal-cell:hover{border-color:var(--border-strong);}
+  .cal-cell.other{background:var(--surface-2);opacity:.55;}
+  .cal-cell.today{border-color:var(--quality);box-shadow:0 0 0 1px var(--quality);}
+  .cal-cell .dn{font-size:11.5px;font-weight:800;color:var(--ink-2);}
+  .ag-chip{font-size:10.5px;color:#fff;border-radius:5px;padding:1px 6px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5;}
+  .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-wcol{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:130px;}
+  .cal-wcol.today{border-color:var(--quality);}
+  .cal-wcol .wd{font-size:11.5px;font-weight:800;color:var(--ink-2);margin-bottom:7px;text-align:center;}
+  .ag-row{display:flex;gap:9px;align-items:center;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:var(--surface);cursor:pointer;}
+  .ag-row:hover{border-color:var(--border-strong);}
+  .ag-row .tm{font-weight:800;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .ag-row .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .ag-row .meta{color:var(--muted);font-size:11.5px;}
+  .agsum-row{display:grid;grid-template-columns:190px 1fr 66px;align-items:center;gap:12px;padding:6px 0;font-size:12.5px;}
+  .agsum-row .nm{color:var(--ink);font-weight:600;display:flex;align-items:center;gap:7px;}
+  .agsum-row .nm .dot{width:9px;height:9px;border-radius:50%;}
+  .agsum-row .bar{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
+  .agsum-row .fill{height:100%;border-radius:6px;}
+  .agsum-row .hh{text-align:right;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .idea-item{display:flex;gap:9px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;margin-bottom:7px;}
+  .idea-item .it{flex:1;font-size:12.5px;color:var(--ink);} .idea-item .ip{font-size:11px;color:var(--quality);font-weight:700;}
+  .idea-item .irm{color:#b04a3a;cursor:pointer;font-weight:700;border:0;background:transparent;font-size:15px;}
   .dcard .dct{font-weight:700;font-size:13.5px;display:flex;gap:7px;align-items:flex-start;}
   .dcard .dct .cd{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
   .dcard .dmeta{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap;}
@@ -269,6 +297,14 @@
   @media print{ .controls,.filters,.btn,.close-x,.cbox,.postbtn,.qstat,.editbtn,.reportbtn{display:none!important;} .card .cbody{display:block!important;} body{background:#fff;} }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /* These two are filled in at serve time from Streamlit Secrets. If left as
+     placeholders (no backend configured), the app runs exactly as before
+     (seed data, in-browser only). */
+  window.__SB_URL = "__SUPABASE_URL__";
+  window.__SB_KEY = "__SUPABASE_ANON_KEY__";
+</script>
 </head>
 <body class="simple">
 <div class="wrap" id="wrap">
@@ -300,10 +336,12 @@
     <button class="btn" id="dlXlsx">⬇ Excel (all sheets)</button>
     <button class="btn primary" id="addBtn">＋ Add project</button>
     <button class="btn" id="addActBtn">＋ Add activity</button>
+    <button class="btn" id="ideasBtn">💡 v2 ideas</button>
   </div>
 
   <div class="tabs" id="tabs">
     <button data-tab="dashboard" class="on">📊 Dashboard</button>
+    <button data-tab="agenda">📅 Agenda</button>
     <button data-tab="activities">🗂 Activities</button>
     <button data-tab="timesheet">⏱ Timesheet</button>
   </div>
@@ -396,6 +434,23 @@
     <p class="hint" style="margin-top:10px">Today's row is added automatically. Type your <b>clock in</b> and it suggests lunch (12:00) and a clock out for a full day — edit anything. Worked = (clock out − clock in) − lunch.</p>
   </div>
 
+  <!-- ===== AGENDA SHEET ===== -->
+  <div class="pane" id="pane-agenda">
+    <div class="sec-head"><h2>Agenda</h2><span class="hint">what you plan to do · each entry links to a project &amp; (optionally) an activity · planned hours summarised below</span></div>
+    <div class="toolbar">
+      <div class="seg" id="agView"><button data-v="day">Day</button><button data-v="week">Week</button><button data-v="month" class="on">Month</button></div>
+      <button class="btn sm" id="agPrev" title="Previous">‹</button>
+      <button class="btn sm" id="agToday">Today</button>
+      <button class="btn sm" id="agNext" title="Next">›</button>
+      <span id="agLabel" style="font-weight:800;font-size:14px;margin-left:4px"></span>
+      <span class="grow"></span>
+      <button class="btn primary" id="agAdd">＋ Add entry</button>
+    </div>
+    <div id="agCal"></div>
+    <div class="sec-head" style="margin-top:24px"><h2>Planned hours</h2><span class="hint">from your agenda, for the period shown above</span></div>
+    <div class="sheet-card" id="agSummary" style="padding:16px 20px"></div>
+  </div>
+
   <footer>
     <div>Built by Adriele · updated <span id="today"></span></div>
     <div>Interactive structure now · live Power BI data to follow</div>
@@ -441,6 +496,36 @@
     <p class="help">Every update note logged so far. Copy to share or keep — notes live in the page for now; once the tracker is hosted online they'll be shared automatically.</p>
     <div id="cmtOut" style="display:block"><textarea id="cmtText" readonly onclick="this.select()"></textarea>
       <button class="btn" id="cCopyBtn" style="margin-top:8px">Copy update log</button></div>
+  </div>
+</div>
+
+<!-- AGENDA ENTRY MODAL -->
+<div class="overlay" id="agOverlay">
+  <div class="modal">
+    <button class="close-x" id="agClose">×</button>
+    <h3 id="agModalTitle">Add agenda entry</h3>
+    <p class="help">A block of planned work — links to a project and (optionally) an activity. Hours feed the summary.</p>
+    <div class="field"><label>What are you planning to do?</label><input id="ag_title" placeholder="e.g. Improve the error logging"></div>
+    <div class="frow"><div class="field"><label>Date</label><input id="ag_date" type="date"></div>
+      <div class="field"><label>Project</label><select id="ag_proj"></select></div></div>
+    <div class="frow"><div class="field"><label>Start</label><input id="ag_start" type="time" value="09:00"></div>
+      <div class="field"><label>End</label><input id="ag_end" type="time" value="10:00"></div></div>
+    <div class="field"><label>Activity (optional)</label><select id="ag_act"></select></div>
+    <div class="field"><label>Note (optional)</label><textarea id="ag_note" placeholder="details of the plan"></textarea></div>
+    <div class="modal-actions"><button class="btn" id="agDel" style="margin-right:auto;border-color:#e2b6b6;color:#c0392b;display:none">🗑 Delete</button><button class="btn" id="agCancel">Cancel</button><button class="btn primary" id="agSaveBtn">Save entry</button></div>
+  </div>
+</div>
+
+<!-- v2 IDEAS MODAL -->
+<div class="overlay" id="ideasOverlay">
+  <div class="modal">
+    <button class="close-x" id="ideasClose">×</button>
+    <h3>💡 Improvement ideas for the next version</h3>
+    <p class="help">Jot down anything to improve later so it isn't lost. Optionally tag it to a project. These are ideas — not update notes.</p>
+    <div id="ideasList" style="margin-bottom:12px"></div>
+    <div class="field"><label>New idea</label><textarea id="idea_text" placeholder="e.g. LabelScanner v3 — flag material==charge in the pipeline"></textarea></div>
+    <div class="field"><label>Project (optional)</label><select id="idea_proj"></select></div>
+    <div class="modal-actions"><button class="btn" id="ideasCancel">Close</button><button class="btn primary" id="ideaAdd">Add idea</button></div>
   </div>
 </div>
 
@@ -571,6 +656,13 @@ const deptById=Object.fromEntries(departments.map(d=>[d.id,d]));
 const statusById=Object.fromEntries(STATUSES.map(s=>[s.id,s]));
 
 let filter={type:'all',value:null}, sel=null, editing=null, currentUser='', cardOpen={};
+
+/* ===== Supabase backend (optional). If not configured, everything stays in-browser like before. ===== */
+const SB_URL=window.__SB_URL, SB_KEY=window.__SB_KEY;
+const cloud = !!(SB_URL && SB_KEY && !SB_URL.startsWith('__') && !SB_KEY.startsWith('__') && window.supabase);
+const sb = cloud ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+const uid = () => (window.crypto&&crypto.randomUUID) ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+let cloudReady=false, applyingRemote=false, syncTimer=null, reloadTimer=null;
 const nComments=p=>(p.comments||[]).length;
 const fmt=d=>{ if(!d)return''; const dt=new Date(d+'T00:00:00'); return isNaN(dt)?d:dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); };
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -734,7 +826,10 @@ function toggleAction(el){ const gi=cardGi(el), ai=+el.dataset.ai; projects[gi].
 function addAction(el){ const c=cardOf(el), gi=+c.dataset.gi, inp=c.querySelector('.actioninput'); const t=(inp.value||'').trim(); if(!t)return; (projects[gi].actions=projects[gi].actions||[]).push({text:t,done:false}); reProjects(); }
 function addAttachment(el){ const c=cardOf(el), gi=+c.dataset.gi; const t=c.querySelector('.ax').value, nm=(c.querySelector('.al').value||'').trim(), url=(c.querySelector('.au').value||'').trim();
   if(!nm&&!url)return; (projects[gi].attachments=projects[gi].attachments||[]).push({type:t,name:nm||url,url:url||'#'}); reProjects(); }
-function addPhoto(input){ const gi=cardGi(input); const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ (projects[gi].attachments=projects[gi].attachments||[]).push({type:'photo',name:f.name,url:e.target.result}); reProjects(); }; r.readAsDataURL(f); }
+async function uploadFile(f){ const path=(currentUser||'anon').replace(/[^\w.\-]/g,'_')+'/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_'); const up=await sb.storage.from('attachments').upload(path,f,{cacheControl:'3600',upsert:false}); if(up.error) throw up.error; return sb.storage.from('attachments').getPublicUrl(path).data.publicUrl; }
+function addPhoto(input){ const gi=cardGi(input); const f=input.files&&input.files[0]; if(!f)return;
+  if(cloud){ uploadFile(f).then(url=>{ (projects[gi].attachments=projects[gi].attachments||[]).push({type:'photo',name:f.name,url}); reProjects(); }).catch(e=>alert('Upload failed: '+(e.message||e))); }
+  else { const r=new FileReader(); r.onload=e=>{ (projects[gi].attachments=projects[gi].attachments||[]).push({type:'photo',name:f.name,url:e.target.result}); reProjects(); }; r.readAsDataURL(f); } }
 function removeAttachment(el,xi){ const gi=cardGi(el); projects[gi].attachments.splice(xi,1); reProjects(); }
 
 /* ---- Project versioning ---- */
@@ -773,6 +868,7 @@ function renderProjList(){
   const order={'in-progress':0,'idea':1,'live':2,'delivered':3};
   const ps=projects.filter(passesFilter).sort((a,b)=>(order[a.status]??9)-(order[b.status]??9));
   document.getElementById('projListWrap').innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${ps.map((p,i)=>deckCard(p,i)).join('')||'<div style="color:var(--ink-2);font-size:13px;padding:6px 2px">No projects.</div>'}</div>`;
+  queueSync();
 }
 
 function passesFilter(p){ if(filter.type==='all')return true; if(filter.type==='dept')return p.dept===filter.value; if(filter.type==='status')return p.status===filter.value; return true; }
@@ -835,7 +931,7 @@ renderAll();
 document.getElementById('today').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 
 const whoami=document.getElementById('whoami');
-whoami.addEventListener('input',()=>{ currentUser=whoami.value.trim(); if(sel)renderDrill(false); });
+whoami.addEventListener('input',()=>{ currentUser=whoami.value.trim(); if(sel)renderDrill(false); if(cloud&&cloudReady)loadFromCloud(); });
 
 viewSeg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
   viewSeg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -863,7 +959,7 @@ gv('saveBtn').onclick=()=>{
   const g=id=>gv(id).value.trim(); const areas=[...document.querySelectorAll('#f_areas input:checked')].map(x=>x.value);
   const obj={name:g('f_name')||'Untitled project',dept:g('f_dept'),status:g('f_status'),date:g('f_date'),areas:areas.length?areas:[AREAS[0]],simple:g('f_simple'),detail:g('f_detail'),components:g('f_components'),impact:g('f_impact'),target:g('f_target'),tech:g('f_tech').split(',').map(s=>s.trim()).filter(Boolean)};
   if(!obj.tech.length)obj.tech=['—'];
-  if(editing!==null){ const o=projects[editing]; obj.comments=o.comments||[]; obj.actions=o.actions||[]; obj.attachments=o.attachments||[]; projects[editing]=obj; } else { obj.comments=[]; obj.actions=[]; obj.attachments=[]; projects.push(obj); }
+  if(editing!==null){ const o=projects[editing]; obj.id=o.id; obj.comments=o.comments||[]; obj.actions=o.actions||[]; obj.attachments=o.attachments||[]; obj.versions=o.versions||[]; obj.version=o.version||1; projects[editing]=obj; } else { obj.id=uid(); obj.comments=[]; obj.actions=[]; obj.attachments=[]; projects.push(obj); }
   renderAll();
   gv('genText').value='  '+JSON.stringify(obj)+',';
   gv('genOut').style.display='block';
@@ -968,12 +1064,18 @@ let timesheet=[
 ];
 const deptOptions=sel=>departments.map(d=>`<option value="${d.id}" ${sel===d.id?'selected':''}>${d.name}</option>`).join('');
 
+/* agenda (planned work) + v2 improvement ideas */
+let agenda=[];        // {id,title,date,start,end,projectId,activityId,note}
+let improvements=[];  // {id,text,projectId,at}
+let agAnchor=new Date(), agViewMode='month', agEditing=null;
+
 /* tab switching */
 const tabsEl=document.getElementById('tabs');
 tabsEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
   tabsEl.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('pane-'+b.dataset.tab).classList.add('active');
+  if(b.dataset.tab==='agenda')renderAgenda();
   window.scrollTo({top:0,behavior:'smooth'});
 });
 
@@ -988,6 +1090,7 @@ function renderActivities(){
     return `<tr><td style="white-space:nowrap">${fmt(a.date)}</td><td style="white-space:nowrap"><span class="deptdot" style="background:${d?d.color:'#ccc'}"></span>${d?d.name:'—'}</td><td>${esc(a.person||'')}</td><td>${esc(a.supporter||'')}</td><td>${esc(a.text||'')}</td><td>${esc(a.impact||'')}</td><td><button class="trm" title="Delete" onclick="delActivity(${i})">×</button></td></tr>`;
   }).join('')||`<tr><td colspan="7" style="color:var(--muted)">No activities yet — add one.</td></tr>`;
   gv('actTable').innerHTML=h+`</tbody>`;
+  queueSync();
 }
 function delActivity(i){ if(!confirm('Delete this activity?'))return; activities.splice(i,1); renderActivities(); }
 const actOverlay=gv('actOverlay');
@@ -996,7 +1099,7 @@ gv('addActBtn').onclick=openActivity; gv('addActBtn2').onclick=openActivity;
 gv('actCancel').onclick=()=>actOverlay.classList.remove('show'); gv('actCloseX').onclick=()=>actOverlay.classList.remove('show');
 actOverlay.onclick=e=>{ if(e.target===actOverlay)actOverlay.classList.remove('show'); };
 gv('aSave').onclick=()=>{ const o={date:gv('a_date').value,dept:gv('a_dept').value,person:gv('a_person').value.trim(),supporter:gv('a_supporter').value.trim(),text:gv('a_text').value.trim(),impact:gv('a_impact').value.trim()};
-  if(!o.text){ alert('Add an activity description.'); return; } activities.push(o); renderActivities(); actOverlay.classList.remove('show'); };
+  if(!o.text){ alert('Add an activity description.'); return; } o.id=uid(); activities.push(o); renderActivities(); actOverlay.classList.remove('show'); };
 gv('actFilterDept').onchange=renderActivities; gv('actFilterPerson').oninput=renderActivities;
 
 function csvDownload(name,rows){ const csv=rows.map(r=>r.map(c=>{ c=(c==null?'':String(c)); return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(',')).join('\n'); const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
@@ -1030,8 +1133,11 @@ function renderTimesheet(){
       <td><button class="trm" onclick="tsDel(${i})">×</button></td></tr>`;
   }).join('')||`<tr><td colspan="9" style="color:var(--muted)">No entries in this range — add a day.</td></tr>`;
   gv('tsTable').innerHTML=h+`</tbody><tfoot><tr><td colspan="5">Total worked</td><td class="tsum">${hm(total)}</td><td colspan="3"></td></tr></tfoot>`;
+  queueSync();
 }
-function tsDoc(i,input){ const f=input.files&&input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ timesheet[i].doc={name:f.name,url:e.target.result}; renderTimesheet(); }; r.readAsDataURL(f); }
+function tsDoc(i,input){ const f=input.files&&input.files[0]; if(!f)return;
+  if(cloud){ uploadFile(f).then(url=>{ timesheet[i].doc={name:f.name,url}; renderTimesheet(); }).catch(e=>alert('Upload failed: '+(e.message||e))); }
+  else { const r=new FileReader(); r.onload=e=>{ timesheet[i].doc={name:f.name,url:e.target.result}; renderTimesheet(); }; r.readAsDataURL(f); } }
 function tsDelDoc(i){ timesheet[i].doc=null; renderTimesheet(); }
 function tsSet(i,k,v){ timesheet[i][k]=v; renderTimesheet(); }
 const minToTime=m=>{ m=Math.max(0,Math.min(24*60-1,Math.round(m))); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
@@ -1046,7 +1152,7 @@ function tsSetIn(i,val){ const r=timesheet[i]; r.in=val;
   renderTimesheet();
 }
 function tsDel(i){ timesheet.splice(i,1); renderTimesheet(); }
-gv('tsAdd').onclick=()=>{ timesheet.push({date:new Date().toISOString().slice(0,10),in:'',lo:'',li:'',out:'',note:'',doc:null}); renderTimesheet(); };
+gv('tsAdd').onclick=()=>{ timesheet.push({id:uid(),date:new Date().toISOString().slice(0,10),in:'',lo:'',li:'',out:'',note:'',doc:null}); renderTimesheet(); };
 ['tsMonth','tsFrom','tsTo','tsHours','tsLunch'].forEach(id=>{ const el=gv(id); if(el)el.addEventListener('change',renderTimesheet); });
 gv('dlTs').onclick=()=>{ const who=(currentUser||'').trim();
   const rows=[['Date','Clock in','Lunch out','Lunch in','Clock out','Worked (h:m)','Worked (min)','Note','Document']]; let total=0;
@@ -1055,9 +1161,126 @@ gv('dlTs').onclick=()=>{ const who=(currentUser||'').trim();
   const label=gv('tsMonth').value||((gv('tsFrom').value||'start')+'_'+(gv('tsTo').value||'end'));
   csvDownload(`timesheet_${who?who+'_':''}${label}.csv`,rows); };
 
-// Auto-add a row for today so you don't have to click "Add day".
-(function(){ const today=new Date().toISOString().slice(0,10); if(!timesheet.some(r=>r.date===today)) timesheet.push({date:today,in:'',lo:'',li:'',out:'',note:'',doc:null}); })();
-renderActivities(); renderTimesheet();
+/* ================= AGENDA (calendar of planned work) ================= */
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const projById=id=>projects.find(x=>x.id===id);
+const projColor=id=>{ const p=projById(id); return p?(deptById[p.dept]||{}).color||'#999':'#999'; };
+const projName=id=>{ const p=projById(id); return p?p.name:''; };
+const actName=id=>{ const a=activities.find(x=>x.id===id); return a?a.text:''; };
+const dur=e=>{ const a=toMin(e.start),b=toMin(e.end); return (a!=null&&b!=null&&b>a)?(b-a)/60:0; };
+function agRange(){ const d=new Date(agAnchor);
+  if(agViewMode==='day') return [new Date(d),new Date(d)];
+  if(agViewMode==='week'){ const wd=(d.getDay()+6)%7; const mon=new Date(d); mon.setDate(d.getDate()-wd); const sun=new Date(mon); sun.setDate(mon.getDate()+6); return [mon,sun]; }
+  return [new Date(d.getFullYear(),d.getMonth(),1), new Date(d.getFullYear(),d.getMonth()+1,0)]; }
+function agLabelText(){ const M=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  if(agViewMode==='month') return M[agAnchor.getMonth()]+' '+agAnchor.getFullYear();
+  if(agViewMode==='day') return agAnchor.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const [mon,sun]=agRange(); return mon.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+sun.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+function calMonth(){ const y=agAnchor.getFullYear(), m=agAnchor.getMonth(); const first=new Date(y,m,1); const startWd=(first.getDay()+6)%7; const gs=new Date(y,m,1-startWd); const todayS=ymd(new Date()); const dows=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let cells='';
+  for(let i=0;i<42;i++){ const d=new Date(gs); d.setDate(gs.getDate()+i); const ds=ymd(d); const other=d.getMonth()!==m; const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    cells+=`<div class="cal-cell ${other?'other':''} ${ds===todayS?'today':''}" onclick="agAddOn('${ds}')"><div class="dn">${d.getDate()}</div>${ents.slice(0,4).map(e=>`<div class="ag-chip" style="background:${projColor(e.projectId)}" onclick="event.stopPropagation();agEdit('${e.id}')">${e.start?e.start+' ':''}${esc(e.title)}</div>`).join('')}${ents.length>4?`<div style="font-size:10px;color:var(--muted);margin-top:2px">+${ents.length-4} more</div>`:''}</div>`; }
+  return `<div class="cal-dowrow">${dows.map(x=>`<div class="cal-dow">${x}</div>`).join('')}</div><div class="cal-month">${cells}</div>`; }
+function calWeek(){ const [mon]=agRange(); const todayS=ymd(new Date()); const dows=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; let cols='';
+  for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); const ds=ymd(d); const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    cols+=`<div class="cal-wcol ${ds===todayS?'today':''}"><div class="wd">${dows[i]} ${d.getDate()}</div>${ents.map(e=>`<div class="ag-chip" style="background:${projColor(e.projectId)}" onclick="agEdit('${e.id}')">${e.start||''}–${e.end||''} ${esc(e.title)}</div>`).join('')||'<div style="font-size:11px;color:var(--muted)">—</div>'}<div style="margin-top:6px;text-align:center"><button class="btn sm" onclick="agAddOn('${ds}')">＋</button></div></div>`; }
+  return `<div class="cal-week">${cols}</div>`; }
+function calDay(){ const ds=ymd(agAnchor); const ents=agenda.filter(e=>e.date===ds).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  return `<div class="sheet-card" style="padding:14px 16px">${ents.map(e=>`<div class="ag-row" onclick="agEdit('${e.id}')"><span class="dot" style="background:${projColor(e.projectId)}"></span><span class="tm">${e.start||''}–${e.end||''}</span><span style="flex:1"><b>${esc(e.title)}</b><span class="meta"> · ${esc(projName(e.projectId))||'—'}${e.activityId?' · '+esc(actName(e.activityId)):''}</span></span><span class="meta">${dur(e).toFixed(1)}h</span></div>`).join('')||'<div style="color:var(--muted);font-size:13px">Nothing planned — click ＋ Add entry.</div>'}<div style="margin-top:8px"><button class="btn sm" onclick="agAddOn('${ds}')">＋ Add on this day</button></div></div>`; }
+function agSummary(){ const [s,e]=agRange(); const ss=ymd(s), ee=ymd(e); const ents=agenda.filter(x=>x.date>=ss&&x.date<=ee);
+  const byProj={}; let total=0; ents.forEach(x=>{ const h=dur(x); total+=h; const k=x.projectId||'(none)'; byProj[k]=(byProj[k]||0)+h; });
+  const rows=Object.entries(byProj).sort((a,b)=>b[1]-a[1]); const max=Math.max(...rows.map(r=>r[1]),1);
+  let h=`<div style="font-size:12.5px;color:var(--ink-2);margin-bottom:8px">Total planned: <b>${total.toFixed(1)} h</b> across ${ents.length} entr${ents.length===1?'y':'ies'}.</div>`;
+  h+=rows.map(([id,hrs])=>`<div class="agsum-row"><div class="nm"><span class="dot" style="background:${id==='(none)'?'#999':projColor(id)}"></span>${id==='(none)'?'Unassigned':esc(projName(id)||'—')}</div><div class="bar"><div class="fill" style="width:${hrs/max*100}%;background:${id==='(none)'?'#999':projColor(id)}"></div></div><div class="hh">${hrs.toFixed(1)}h</div></div>`).join('')||'<div style="color:var(--muted);font-size:13px">No planned hours in this period.</div>';
+  const byAct={}; ents.forEach(x=>{ if(x.activityId) byAct[x.activityId]=(byAct[x.activityId]||0)+dur(x); });
+  const arows=Object.entries(byAct).sort((a,b)=>b[1]-a[1]);
+  if(arows.length){ const amax=Math.max(...arows.map(r=>r[1]),1); h+=`<div style="font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px">By activity</div>`+arows.map(([id,hrs])=>`<div class="agsum-row"><div class="nm">${esc(actName(id))||'—'}</div><div class="bar"><div class="fill" style="width:${hrs/amax*100}%;background:var(--procurement)"></div></div><div class="hh">${hrs.toFixed(1)}h</div></div>`).join(''); }
+  return h; }
+function renderAgenda(){ const L=document.getElementById('agLabel'); if(!L)return; L.textContent=agLabelText();
+  document.getElementById('agCal').innerHTML = agViewMode==='month'?calMonth():agViewMode==='week'?calWeek():calDay();
+  document.getElementById('agSummary').innerHTML=agSummary(); queueSync(); }
+document.querySelectorAll('#agView button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#agView button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); agViewMode=b.dataset.v; renderAgenda(); });
+gv('agPrev').onclick=()=>shiftAnchor(-1); gv('agNext').onclick=()=>shiftAnchor(1);
+gv('agToday').onclick=()=>{ agAnchor=new Date(); renderAgenda(); };
+function shiftAnchor(dir){ const d=new Date(agAnchor); if(agViewMode==='day')d.setDate(d.getDate()+dir); else if(agViewMode==='week')d.setDate(d.getDate()+7*dir); else d.setMonth(d.getMonth()+dir); agAnchor=d; renderAgenda(); }
+const agOverlay=gv('agOverlay');
+function fillAgSelects(){ gv('ag_proj').innerHTML='<option value="">— none —</option>'+projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); gv('ag_act').innerHTML='<option value="">— none —</option>'+activities.map(a=>`<option value="${a.id}">${esc((a.text||'').slice(0,60))}</option>`).join(''); }
+function agAddOn(ds){ agEditing=null; fillAgSelects(); gv('agModalTitle').textContent='Add agenda entry'; gv('ag_title').value=''; gv('ag_date').value=ds||ymd(agAnchor); gv('ag_proj').value=''; gv('ag_act').value=''; gv('ag_start').value='09:00'; gv('ag_end').value='10:00'; gv('ag_note').value=''; gv('agDel').style.display='none'; agOverlay.classList.add('show'); }
+gv('agAdd').onclick=()=>agAddOn(ymd(agAnchor));
+function agEdit(id){ const e=agenda.find(x=>x.id===id); if(!e)return; agEditing=id; fillAgSelects(); gv('agModalTitle').textContent='Edit agenda entry'; gv('ag_title').value=e.title||''; gv('ag_date').value=e.date||''; gv('ag_proj').value=e.projectId||''; gv('ag_act').value=e.activityId||''; gv('ag_start').value=e.start||''; gv('ag_end').value=e.end||''; gv('ag_note').value=e.note||''; gv('agDel').style.display='inline-flex'; agOverlay.classList.add('show'); }
+gv('agClose').onclick=()=>agOverlay.classList.remove('show'); gv('agCancel').onclick=()=>agOverlay.classList.remove('show');
+agOverlay.onclick=ev=>{ if(ev.target===agOverlay)agOverlay.classList.remove('show'); };
+gv('agSaveBtn').onclick=()=>{ const o={title:gv('ag_title').value.trim(),date:gv('ag_date').value,projectId:gv('ag_proj').value,activityId:gv('ag_act').value,start:gv('ag_start').value,end:gv('ag_end').value,note:gv('ag_note').value.trim()};
+  if(!o.title){ alert('Add a title.'); return; } if(!o.date){ alert('Pick a date.'); return; }
+  if(agEditing){ Object.assign(agenda.find(x=>x.id===agEditing),o); } else { o.id=uid(); agenda.push(o); }
+  agOverlay.classList.remove('show'); renderAgenda(); };
+gv('agDel').onclick=()=>{ if(!agEditing)return; agenda=agenda.filter(x=>x.id!==agEditing); agEditing=null; agOverlay.classList.remove('show'); renderAgenda(); };
+
+/* ================= v2 IDEAS backlog ================= */
+const ideasOverlay=gv('ideasOverlay');
+function renderIdeasList(){ const el=gv('ideasList'); if(!el)return; el.innerHTML=improvements.map(x=>`<div class="idea-item"><div class="it">${esc(x.text)}${x.projectId?`<div class="ip">▹ ${esc(projName(x.projectId))}</div>`:''}</div><button class="irm" onclick="delIdea('${x.id}')">×</button></div>`).join('')||'<div style="color:var(--muted);font-size:12.5px">No ideas yet — add one below.</div>'; queueSync(); }
+function delIdea(id){ improvements=improvements.filter(x=>x.id!==id); renderIdeasList(); }
+gv('ideasBtn').onclick=()=>{ gv('idea_proj').innerHTML='<option value="">— none —</option>'+projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); renderIdeasList(); ideasOverlay.classList.add('show'); };
+gv('ideasClose').onclick=()=>ideasOverlay.classList.remove('show'); gv('ideasCancel').onclick=()=>ideasOverlay.classList.remove('show');
+ideasOverlay.onclick=ev=>{ if(ev.target===ideasOverlay)ideasOverlay.classList.remove('show'); };
+gv('ideaAdd').onclick=()=>{ const t=gv('idea_text').value.trim(); if(!t)return; improvements.push({id:uid(),text:t,projectId:gv('idea_proj').value,at:new Date().toISOString().slice(0,10)}); gv('idea_text').value=''; renderIdeasList(); };
+
+function seedExamples(){
+  if(!agenda.length){ const today=ymd(new Date());
+    const ls=(projects.find(p=>p.name.includes('LabelScanner'))||{}).id||''; const pb=(projects.find(p=>p.name.includes('Power BI'))||{}).id||'';
+    agenda.push({id:uid(),title:'Improve the error logging',date:today,start:'09:00',end:'11:00',projectId:ls,activityId:'',note:'Structured logs + retry on API errors'});
+    agenda.push({id:uid(),title:'Power BI: wire pass-rate measure',date:today,start:'13:00',end:'15:30',projectId:pb,activityId:'',note:''}); }
+  if(!improvements.length){ const ls=(projects.find(p=>p.name.includes('LabelScanner'))||{}).id||'';
+    improvements.push({id:uid(),text:'LabelScanner v3 — flag material==charge in the pipeline, not just downstream',projectId:ls,at:ymd(new Date())}); } }
+
+// ---- ensure today's timesheet row exists ----
+function ensureTodayRow(){ const today=new Date().toISOString().slice(0,10); if(!timesheet.some(r=>r.date===today)) timesheet.push({id:uid(),date:today,in:'',lo:'',li:'',out:'',note:'',doc:null}); }
+
+/* ================= Supabase persistence (no-op when backend not configured) ================= */
+function queueSync(){ if(!cloud||!cloudReady||applyingRemote)return; clearTimeout(syncTimer); syncTimer=setTimeout(syncAll,700); }
+async function syncAll(){ await syncTable('projects',projects); await syncTable('activities',activities); await syncTable('agenda',agenda); await syncTable('improvements',improvements); await syncTimesheetRows(); }
+async function syncTable(name,arr){ try{
+    if(!arr.length)return;                                   // safety: never wipe a table on an empty array
+    const rows=arr.map((x,i)=>{ const {id,...doc}=x; return {id:x.id, sort:i, doc, updated_by:currentUser||'', updated_at:new Date().toISOString()}; });
+    const up=await sb.from(name).upsert(rows); if(up.error)throw up.error;
+    const ids=arr.map(x=>x.id).filter(Boolean);
+    if(ids.length) await sb.from(name).delete().not('id','in','('+ids.join(',')+')');
+  }catch(e){ console.warn('sync '+name,e); } }
+async function syncTimesheetRows(){ try{ const u=currentUser||''; if(!u||!timesheet.length)return;
+    const rows=timesheet.map(x=>{ const {id,...doc}=x; return {id:x.id, user:u, doc, updated_at:new Date().toISOString()}; });
+    const up=await sb.from('timesheet').upsert(rows); if(up.error)throw up.error;
+    const ids=timesheet.map(x=>x.id).filter(Boolean);
+    if(ids.length) await sb.from('timesheet').delete().eq('user',u).not('id','in','('+ids.join(',')+')');
+  }catch(e){ console.warn('sync timesheet',e); } }
+async function loadFromCloud(){ if(!cloud)return; applyingRemote=true; try{
+    const pr=await sb.from('projects').select('*'); const ac=await sb.from('activities').select('*'); const ts=await sb.from('timesheet').select('*').eq('user',currentUser||'');
+    const ag=await sb.from('agenda').select('*'); const im=await sb.from('improvements').select('*');
+    if(pr.data){ pr.data.sort((a,b)=>(a.sort||0)-(b.sort||0)); projects = pr.data.map(r=>({id:r.id,...r.doc})); }
+    if(ac.data){ activities = ac.data.map(r=>({id:r.id,...r.doc})); }
+    if(ts.data){ timesheet = ts.data.map(r=>({id:r.id,...r.doc})); }
+    if(ag.data){ agenda = ag.data.map(r=>({id:r.id,...r.doc})); }
+    if(im.data){ improvements = im.data.map(r=>({id:r.id,...r.doc})); }
+  }catch(e){ console.warn('load',e); }
+  ensureTodayRow(); applyingRemote=false; renderAll(); renderActivities(); renderTimesheet(); renderAgenda(); renderIdeasList(); }
+function reloadSoon(){ clearTimeout(reloadTimer); reloadTimer=setTimeout(loadFromCloud,500); }
+function subscribeRealtime(){ try{ sb.channel('tracker')
+    .on('postgres_changes',{event:'*',schema:'public',table:'projects'},reloadSoon)
+    .on('postgres_changes',{event:'*',schema:'public',table:'activities'},reloadSoon)
+    .on('postgres_changes',{event:'*',schema:'public',table:'timesheet'},reloadSoon)
+    .subscribe(); }catch(e){ console.warn('realtime',e); } }
+async function initApp(){
+  projects.forEach(p=>{ if(!p.id)p.id=uid(); });
+  activities.forEach(a=>{ if(!a.id)a.id=uid(); });
+  timesheet.forEach(t=>{ if(!t.id)t.id=uid(); });
+  seedExamples();
+  if(cloud){ try{
+      const chk=await sb.from('projects').select('id').limit(1);
+      cloudReady=true;
+      if(!chk.error && chk.data && chk.data.length===0){ await syncTable('projects',projects); await syncTable('activities',activities); await syncTable('agenda',agenda); await syncTable('improvements',improvements); }  // first run: seed the DB
+      await loadFromCloud(); subscribeRealtime();
+    }catch(e){ console.warn('init cloud',e); ensureTodayRow(); renderActivities(); renderTimesheet(); renderAgenda(); }
+  } else { ensureTodayRow(); renderActivities(); renderTimesheet(); renderAgenda(); }
+}
+initApp();
 
 /* Cards / Table toggle for projects */
 const boardView=document.getElementById('boardView');
